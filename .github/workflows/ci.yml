@@ -1,0 +1,53 @@
+name: OpsMind CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: opsmind
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: opsmind_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U opsmind -d opsmind_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://opsmind:ci-only-password@localhost:5432/opsmind_test?sslmode=disable
+      DATABASE_URL: postgres://opsmind:ci-only-password@localhost:5432/opsmind_test?sslmode=disable
+      MODEL_MODE: mock
+      OPERATOR_USERNAME: operator
+      OPERATOR_PASSWORD: ci-operator-password
+      SESSION_SECRET: ci-session-secret-with-at-least-32-characters
+      APP_ORIGIN: http://localhost:8080
+      COOKIE_SECURE: "false"
+      SEED_IF_EMPTY: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: go vet ./...
+      - run: go test -race -count=1 ./...
+      - run: npm ci && npm run build
+        working-directory: web
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - run: go build -o bin/opsmind ./cmd/opsmind
+      - run: npm run test:e2e
+        working-directory: web
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failure
+          path: web/test-results

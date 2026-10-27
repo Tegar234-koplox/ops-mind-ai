@@ -1,0 +1,1 @@
+ALTER TABLE api_idempotency ALTER COLUMN response TYPE bytea USING convert_to(response::text,'UTF8');

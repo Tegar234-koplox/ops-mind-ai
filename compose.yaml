@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: opsmind
+      POSTGRES_USER: opsmind
+      POSTGRES_PASSWORD: local-only-database
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opsmind -d opsmind"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://opsmind:local-only-database@db:5432/opsmind?sslmode=disable
+      PORT: "8080"
+      WEB_DIR: /app/web/dist
+      SEED_IF_EMPTY: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  pgdata:

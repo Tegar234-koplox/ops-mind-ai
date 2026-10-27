@@ -1,0 +1,1 @@
+ALTER TABLE api_idempotency ALTER COLUMN response TYPE jsonb USING convert_from(response,'UTF8')::jsonb;

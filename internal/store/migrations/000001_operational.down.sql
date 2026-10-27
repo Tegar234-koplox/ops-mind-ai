@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS budgets,expenses,downtime_events,production_runs,overtime_records,leave_records,attendance_records,shift_assignments,shift_instances,calendar_days,machines,production_lines,employees,departments CASCADE;

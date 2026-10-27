@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS budget_reservations,api_idempotency,audit_events,review_actions,recommendations,investigation_events,tool_executions,case_evidence,investigation_runs,anomaly_cases CASCADE; DROP FUNCTION IF EXISTS prevent_audit_change();

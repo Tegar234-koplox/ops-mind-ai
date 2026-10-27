@@ -1,0 +1,119 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "observation_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "maxItems": 16
+    },
+    "hypotheses": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "statement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1500
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium"
+            ]
+          },
+          "counter_evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "statement",
+          "evidence_ids",
+          "confidence",
+          "counter_evidence"
+        ]
+      }
+    },
+    "information_gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10
+    },
+    "recommendations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1500
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "department": {
+            "type": "string",
+            "enum": [
+              "Operasi",
+              "Workforce",
+              "Keuangan",
+              "Produksi",
+              "Maintenance"
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "rationale",
+          "evidence_ids",
+          "department"
+        ]
+      }
+    }
+  },
+  "required": [
+    "summary",
+    "observation_evidence_ids",
+    "hypotheses",
+    "information_gaps",
+    "recommendations"
+  ]
+}

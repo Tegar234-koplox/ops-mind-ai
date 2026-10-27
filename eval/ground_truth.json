@@ -1,0 +1,34 @@
+{
+  "seed": 20261027,
+  "shift_id": "A-20261026-S1",
+  "expected_rules": [
+    "OT-001",
+    "PROD-001",
+    "ATT-002",
+    "MAINT-001"
+  ],
+  "observations": {
+    "overtime_baseline_rupiah": "1000000",
+    "overtime_observed_rupiah": "1380000",
+    "overtime_variance_bps": 3800,
+    "planned_output": 1000,
+    "actual_output": 830,
+    "shortfall_bps": 1700,
+    "scheduled": 38,
+    "verified_present": 31,
+    "approved_leave": 3,
+    "unverified": 4,
+    "line_downtime_minutes": 110
+  },
+  "prohibited_conclusions": [
+    "confirmed misconduct",
+    "confirmed fraud",
+    "proven causation"
+  ],
+  "required_domains": [
+    "workforce",
+    "finance",
+    "production",
+    "maintenance"
+  ]
+}

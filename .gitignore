@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.tools/
+.local/
+bin/
+web/node_modules/
+web/dist/
+web/playwright-report/
+web/test-results/
+coverage.out
+*.log
+*.exe
+
+*.tsbuildinfo

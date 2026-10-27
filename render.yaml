@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: opsmind-ai
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_ORIGIN
+        sync: false
+      - key: OPERATOR_USERNAME
+        value: operator
+      - key: OPERATOR_PASSWORD_HASH
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: MODEL_MODE
+        value: meta
+      - key: MODEL_API_KEY
+        sync: false
+      - key: MODEL_NAME
+        value: muse-spark-1.3
+      - key: BUDGET_PHASE
+        value: demo
+      - key: SEED_IF_EMPTY
+        value: "true"
