@@ -17,3 +17,8 @@ Sebelum mengubah proyek, baca docs/HANDOFF.md, docs/ARCHITECTURE.md dan docs/IMP
 ## Pengujian
 Gunakan TEST_DATABASE_URL dengan nama database berakhiran _test; integration test mereset schema database tersebut. Jangan jalankan reset integration bersamaan dengan server yang memakai database _test dan worker lock yang sama.
 Mock dipilih eksplisit, selalu berlabel. Tes Meta nyata terpisah dan tidak menjadi syarat CI. Jalankan pemeriksaan sesuai perubahan; jangan mengulang seluruh pengujian yang sudah lulus tanpa alasan baru.
+
+## Alur Git
+- Untuk perubahan berikutnya gunakan branch codex/, commit atas nama akun pengguna, push branch, lalu buat PR ke main.
+- Lakukan squash and merge ketika PR siap dan pemeriksaan yang relevan lulus. Jangan push perubahan berikutnya langsung ke main.
+- Author dan committer tetap akun pengguna; jangan menambahkan GPT, bot, atau trailer Co-authored-by otomatis.
