@@ -56,6 +56,7 @@ Diperbarui 28 Oktober 2026 (WIB). Status: P1 selesai dan terverifikasi daring; p
 - .env: password operator, session secret lokal, Meta API key. .env.deploy: NEON_API_KEY dan RENDER_API_KEY. Keduanya valid saat provisioning; jangan cetak/commit/upload.
 - .local/cloud-state.json menyimpan DSN Neon rahasia dan ID resource; .local/cloud-report.json serta cloud-verification.json menyimpan bukti tes. Semuanya di-ignore Git dan Docker.
 - Helper API hanya lokal di .local/, memakai HTTPS IPv4 dan timeout, tidak me-retry mutasi otomatis. Respons credential disimpan lokal tanpa dicetak.
+- Setelah checkpoint commit ini, baca juga .local/LAST_PROGRESS.md jika tersedia untuk hasil akhir merge/deployment yang diverifikasi sesudah CI. Catatan lokal ini tidak berisi kredensial dan tidak diunggah; berkas bukti JSON terkait tetap di-ignore.
 - Screenshot daring di web/test-results/cloud-meta-report-desktop.png dan cloud-meta-review-desktop.png; sudah diperiksa visual dan di-ignore. Tidak ada trace browser yang diunggah.
 - Runtime lokal: Go 1.27.3 .tools/go; Node 24; PostgreSQL portabel port 55432. Server Meta lokal lama mungkin masih port 8080; cek proses sebelum menjalankan ulang.
 - opsmind_test khusus tes reset schema; jangan jalankan reset bersama server/worker pada DB test yang sama.
@@ -87,6 +88,6 @@ Diperbarui 28 Oktober 2026 (WIB). Status: P1 selesai dan terverifikasi daring; p
 
 ## Hover sedang dikerjakan
 - Reproduksi browser daring membuktikan nav samping, tab, dan tautan bukti tidak memiliki perubahan hover. Tombol utama, kasus nonaktif dan kartu bukti sudah merespons; kasus terpilih tidak merespons. Bukti lokal .local/hover-before.json/png (ignore).
-- Perbaikan terbatas pada feedback interaktif, status navigasi terpilih yang sebelumnya hardcoded, dan pengujian browser. Kartu statistik tetap informasional. Build/format frontend dan tes browser hover lulus (12,8 detik); screenshot desktop/ponsel diperiksa. Belum push/PR/deploy.
+- Perbaikan terbatas pada feedback interaktif, status navigasi terpilih yang sebelumnya hardcoded, dan pengujian browser. Kartu statistik tetap informasional. Build/format frontend dan tes browser hover lulus (12,8 detik); screenshot desktop/ponsel diperiksa. Branch sudah dipush dan PR #3 https://github.com/Tegar234-koplox/ops-mind-ai/pull/3 dibuat; pada checkpoint ini CI berjalan dan belum merge/deploy. Hasil akhir dicatat di .local/LAST_PROGRESS.md.
 - Tes mencakup hover normal/terpilih, dialog bukti dari tautan, aria-current, fokus keyboard, reduced motion, dan navigasi tab pada viewport ponsel. Nav samping memang disembunyikan pada layout ponsel; tidak menambah menu baru.
-- Contributor repo setelah merge P1 tetap hanya Tegar234-koplox (diverifikasi API). Izin committer teknis hanya PR #1 dan #2; PR hover memerlukan keputusan terpisah saat siap.
+- Contributor repo setelah merge P1 tetap hanya Tegar234-koplox (diverifikasi API). Pengguna mengizinkan committer teknis GitHub khusus PR #3 melalui jawaban terpisah setelah PR siap ditinjau; izin tidak mencakup PR berikutnya. Merge hanya setelah seluruh checks relevan lulus.
