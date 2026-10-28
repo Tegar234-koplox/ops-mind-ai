@@ -2,6 +2,12 @@
 
 Platform investigasi operasional manufaktur: deteksi deterministik Go → agent Meta memilih bukti lintas departemen → laporan → review manusia. Seluruh dataset sintetis. Empat aturan P0, delapan tool baca, PostgreSQL persisten, React/TypeScript, login, SSE dan audit.
 
+## Demo daring
+
+[OpsMind AI — demo terlindungi login](https://opsmind-ai-l0px.onrender.com). Kredensial diberikan pemilik secara privat. Seluruh catatan manufaktur sintetis. Layanan Free dapat mengalami cold start.
+
+Verifikasi 28 Oktober 2026: login HTTPS, empat aturan P0, golden Meta nyata (2 putaran, 7 tool, 4 domain), bukti, SSE reconnect, serta review manusia berhasil. Biaya investigasi daring US$0,018857. Video dan submission belum selesai.
+
 ## Jalankan lokal dengan Docker
 
 Prasyarat: Docker Engine/Compose aktif. Untuk pengembangan tanpa container: Go 1.27.3, Node 24, PostgreSQL 18.
@@ -58,7 +64,7 @@ Tes integrasi **mereset schema hanya pada database TEST_DATABASE_URL yang namany
 
 ## Deployment gratis
 
-Gunakan `render.yaml`: satu Render Free Docker web service, database Neon Free PostgreSQL 18 dengan TLS. Isi DATABASE_URL, APP_ORIGIN (URL deployment persis), OPERATOR_PASSWORD_HASH, MODEL_API_KEY melalui secret environment. SESSION_SECRET dihasilkan Render. BUDGET_PHASE=demo, COOKIE_SECURE=true, SEED_IF_EMPTY=true. Jangan membuat layanan berbayar atau memasang payment method tanpa keputusan pemilik.
+Gunakan `render.yaml`: satu Render Free Docker web service, database Neon Free PostgreSQL 18 dengan TLS dan koneksi langsung (session lock worker memerlukan sesi PostgreSQL tetap). Gunakan `sslmode=verify-full`. Blueprint memakai region Singapore, branch main, dan deploy setelah CI lulus. Isi DATABASE_URL, APP_ORIGIN (URL deployment persis), OPERATOR_PASSWORD_HASH, MODEL_API_KEY melalui secret environment. SESSION_SECRET dihasilkan Render. BUDGET_PHASE=demo, COOKIE_SECURE=true, SEED_IF_EMPTY=true. Jangan membuat layanan berbayar atau memasang payment method tanpa keputusan pemilik.
 
 Render Free dapat tidur setelah 15 menit tidak ada inbound traffic; cold start sekitar satu menit. Worker melanjutkan checkpoint ketika proses hidup. Semua state di PostgreSQL; filesystem container ephemeral. Ini demo dengan pendekatan produksi, bukan layanan dengan SLA. Batas aplikasi US$20 (15 pengembangan +5 demo), maksimum US$0,25/run; belum tentu seluruh kredit US$150 tersedia selamanya. Harga input/output Meta diverifikasi pada perencanaan dan harus dicek ulang sebelum rilis.
 
