@@ -21,7 +21,9 @@ button {
   cursor: pointer;
   transition:
     background 0.15s,
-    border-color 0.15s;
+    border-color 0.15s,
+    color 0.15s,
+    box-shadow 0.15s;
 }
 button:disabled {
   opacity: 0.5;
@@ -83,17 +85,10 @@ label {
   color: white;
   box-shadow: 0 2px 3px #087f7216;
 }
-.primary:hover:not(:disabled) {
-  background: #06695e;
-}
 .secondary {
   background: white;
   border: 1px solid #dce2e9;
   color: #4d5c70;
-}
-.secondary:hover:not(:disabled) {
-  border-color: #70b6ac;
-  background: #f4fbf9;
 }
 .icon-button {
   display: inline-flex;
@@ -104,10 +99,6 @@ label {
   color: #8390a0;
   padding: 7px;
   border-radius: 6px;
-}
-.icon-button:hover {
-  background: #edf2f6;
-  color: #243248;
 }
 .eyebrow {
   display: block;
@@ -454,9 +445,6 @@ label {
   padding: 16px 12px;
   margin: 5px 0;
   color: #243248;
-}
-.case-item:hover {
-  background: #f6f8fa;
 }
 .case-item.active {
   border-color: #b6d9d1;
@@ -901,10 +889,6 @@ label {
   padding: 14px;
   text-align: left;
   min-width: 0;
-}
-.evidence-card:hover {
-  border-color: #98c6b6;
-  box-shadow: 0 3px 9px #204d3810;
 }
 .evidence-title {
   display: flex;
@@ -1684,6 +1668,53 @@ label {
   }
   .login-form h2 {
     font-size: 23px;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover:not(:disabled) {
+    background: #06695e;
+  }
+  .secondary:hover:not(:disabled) {
+    border-color: #70b6ac;
+    background: #f4fbf9;
+  }
+  .icon-button:hover:not(:disabled) {
+    background: #edf2f6;
+    color: #243248;
+  }
+  .nav-item:hover:not(:disabled) {
+    background: #1c2e3f;
+    color: #d6e8e4;
+  }
+  .nav-item.selected:hover:not(:disabled) {
+    background: #29464e;
+    color: #a3ecdd;
+  }
+  .tabs button:hover:not(:disabled) {
+    background: #f0f8f5;
+    border-bottom-color: #9bcfc2;
+    color: #127a6c;
+  }
+  .tabs button.selected:hover:not(:disabled) {
+    background: #e9f5ef;
+    border-bottom-color: #159781;
+  }
+  .case-item:hover:not(:disabled) {
+    background: #f6f8fa;
+  }
+  .case-item.active:hover:not(:disabled) {
+    background: #e3f3ed;
+    border-color: #8bc6b8;
+  }
+  .evidence-card:hover:not(:disabled) {
+    background: #f8fcfa;
+    border-color: #98c6b6;
+    box-shadow: 0 3px 9px #204d3810;
+  }
+  .evidence-links button:hover:not(:disabled) {
+    background: #e7f4ed;
+    border-color: #9dc7b5;
+    color: #27644c;
   }
 }
 @media (prefers-reduced-motion: reduce) {

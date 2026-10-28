@@ -1,6 +1,6 @@
 # Handoff OpsMind AI
 
-Diperbarui 28 Oktober 2026 (WIB). Status: pekerjaan dilanjutkan atas instruksi pengguna; deployment P0 dan golden daring terverifikasi; pengerjaan P1 aktif atas instruksi terbaru.
+Diperbarui 28 Oktober 2026 (WIB). Status: P1 selesai dan terverifikasi daring; perbaikan hover dashboard sedang dikerjakan sesuai urutan pengguna.
 
 ## Keputusan tetap
 - Monolit modular Go/PostgreSQL/React/Meta Model API; P0 OT-001, PROD-001, ATT-002, MAINT-001 dan golden tetap dipertahankan. P1 hanya empat aturan yang diminta.
@@ -17,9 +17,9 @@ Diperbarui 28 Oktober 2026 (WIB). Status: pekerjaan dilanjutkan atas instruksi p
 - Neon project wild-dew-57741693 (opsmind-ai), PostgreSQL 18, region aws-ap-southeast-1, compute min/max 0,25 CU, auto-suspend default paket Free. Organisasi diverifikasi plan free sebelum pembuatan.
 - Endpoint ep-broad-mouse-b35rsj8q; database opsmind. Gunakan koneksi langsung Neon dengan sslmode=verify-full karena worker menggunakan session advisory lock.
 - Dua proyek Neon lain milik pengguna tidak diubah. Layanan Key Value yang pernah dibuat pengguna bukan dependensi aplikasi dan tidak diubah.
-- Commit yang terpasang kini c3fd4118721c8b6a6608b62a3a1c240e8d5cbf03 (hasil squash PR #1 pada main). Kode runtime aplikasi sama dengan 3d6ef8a; perubahan sesudahnya hanya CI, petunjuk dan konfigurasi deployment.
+- Commit yang terpasang kini 77227f80c8ac6af674abbb8d99defe9e6e66c088 (hasil squash PR #2 pada main). P1 aktif; rincian verifikasi di bagian P1 selesai.
 - Build pertama dep-dbh00h6k1f9s7399lv8g berhasil. Karena URL final baru diketahui setelah create, APP_ORIGIN diperbarui lalu image yang sama diterapkan ulang (dep-dbh01hu1egvs73e9pj60) agar login memakai origin final.
-- Restart terkontrol dep-dbh03n6gekts73904ne0 mempertahankan laporan/bukti/review/biaya/seed. Deployment final dep-dbh096ei0phs73ad1280 berstatus live pada c3fd411.
+- Restart terkontrol dep-dbh03n6gekts73904ne0 mempertahankan laporan/bukti/review/biaya/seed. Deployment P0 dep-dbh096ei0phs73ad1280 sebelumnya live pada c3fd411; digantikan deployment P1 di bawah.
 - Deployment final dipicu API setelah CI main lulus. autoDeployTrigger=checksPass terkonfigurasi, tetapi pemicuan otomatis belum terverifikasi; jangan mengklaim hook CI-to-Render otomatis berhasil.
 - Environment backend memakai MODEL_MODE=meta, muse-spark-1.3, BUDGET_PHASE=demo, COOKIE_SECURE=true, password bcrypt, session secret acak, SEED_IF_EMPTY=true. Tidak ada management key pada backend.
 - Render Free dapat tidur saat idle. Tidak ada jaminan worker berjalan 24/7; cold start dan kuota gratis tetap berlaku.
@@ -48,7 +48,7 @@ Diperbarui 28 Oktober 2026 (WIB). Status: pekerjaan dilanjutkan atas instruksi p
 - Job verify mencakup vet/race test/PostgreSQL 18/frontend/Playwright mock; job Container startup membangun Dockerfile dan memverifikasi Compose/login/seed. Docker lokal belum menyediakan daemon; validasi container nyata telah lulus di runner Linux.
 - Commit akhir PR 2660dedc0390e381c6107d91f57670eca1cd60c6 lulus CI: https://github.com/Tegar234-koplox/ops-mind-ai/actions/runs/40703708067
 - CI main hasil squash c3fd411 LULUS (verify dan Container startup): https://github.com/Tegar234-koplox/ops-mind-ai/actions/runs/40704406798
-- Pengecualian committer GitHub diberikan eksplisit hanya untuk PR #1 setelah CI hijau. Jangan menganggapnya izin umum untuk PR berikutnya; aturan AGENTS.md tetap berlaku. Author/contributor GPT atau bot tetap dilarang.
+- Pengecualian committer GitHub diberikan eksplisit untuk PR #1 dan, melalui jawaban terpisah, hanya PR #2. Bukan izin umum untuk PR berikutnya; aturan AGENTS.md tetap berlaku. Author/contributor GPT atau bot tetap dilarang.
 - Transport Git yang berhasil tanpa perubahan global: git -c http.sslBackend=schannel -c http.curloptResolve=github.com:443:20.205.243.166 -c credential.helper= -c 'credential.helper=!gh auth git-credential' ... ; resolve IPv4 ulang jika alamat berubah.
 - GitHub CLI login akun Tegar234-koplox; konektor write sebelumnya 403. PR dibuat via CLI akun pengguna, tanpa mencetak token.
 
@@ -56,30 +56,38 @@ Diperbarui 28 Oktober 2026 (WIB). Status: pekerjaan dilanjutkan atas instruksi p
 - .env: password operator, session secret lokal, Meta API key. .env.deploy: NEON_API_KEY dan RENDER_API_KEY. Keduanya valid saat provisioning; jangan cetak/commit/upload.
 - .local/cloud-state.json menyimpan DSN Neon rahasia dan ID resource; .local/cloud-report.json serta cloud-verification.json menyimpan bukti tes. Semuanya di-ignore Git dan Docker.
 - Helper API hanya lokal di .local/, memakai HTTPS IPv4 dan timeout, tidak me-retry mutasi otomatis. Respons credential disimpan lokal tanpa dicetak.
+- Setelah checkpoint commit ini, baca juga .local/LAST_PROGRESS.md jika tersedia untuk hasil akhir merge/deployment yang diverifikasi sesudah CI. Catatan lokal ini tidak berisi kredensial dan tidak diunggah; berkas bukti JSON terkait tetap di-ignore.
 - Screenshot daring di web/test-results/cloud-meta-report-desktop.png dan cloud-meta-review-desktop.png; sudah diperiksa visual dan di-ignore. Tidak ada trace browser yang diunggah.
 - Runtime lokal: Go 1.27.3 .tools/go; Node 24; PostgreSQL portabel port 55432. Server Meta lokal lama mungkin masih port 8080; cek proses sebelum menjalankan ulang.
 - opsmind_test khusus tes reset schema; jangan jalankan reset bersama server/worker pada DB test yang sama.
 - Ground truth eval/ tidak dibaca runtime/model. Validasi schema/hash/referensi tidak membuktikan kebenaran semua narasi.
 
 ## Urutan lanjut yang dibatasi plan
-1. Selesaikan P1 pada branch codex/p1-detection dengan commit → push branch → PR, tanpa push langsung main. Checkpoint dasar 693b33d ikut branch ini.
-2. Setelah CI dan merge, aktifkan flag P1 pada Render dan verifikasi migrasi, fixture, empat deteksi serta satu/dua investigasi Meta nyata. Pastikan golden tersimpan tetap utuh.
-3. Setelah P1 selesai, reproduksi dan perbaiki hover dashboard sesuai permintaan pengguna.
+1. P1 selesai melalui PR #2, merge, deployment, empat deteksi dan dua investigasi Meta nyata. Jangan mengulang pekerjaan ini atau mengubah golden.
+2. Selesaikan hover pada branch codex/hover-interactions: validasi browser → commit/push → PR → CI → keputusan committer khusus PR baru → merge/deploy/verifikasi.
+3. Jangan menerapkan hover ke deployment sebelum pemeriksaan dan alur Git selesai.
 4. Demo/video ditangani pengguna sendiri. Agent tidak melanjutkan pekerjaan video atau submission tanpa instruksi berikutnya.
 5. Target internal menurut plan tetap 4 November 2026 18.00 WIB; event 5 November 09.00 WIB. Jangan memperluas ke modul lain.
 
-## P1 sedang dikerjakan (checkpoint sementara)
-- Branch codex/p1-detection sudah dipush; commit awal P1 ae281d1. PR #2: https://github.com/Tegar234-koplox/ops-mind-ai/pull/2 . Belum merge/deploy.
+## P1 selesai
+- Branch codex/p1-detection: ae281d1 dan perbaikan akhir 11594a2. PR #2 https://github.com/Tegar234-koplox/ops-mind-ai/pull/2 sudah squash merge menjadi 77227f80c8ac6af674abbb8d99defe9e6e66c088. Author Tegar Sang Putra, committer teknis GitHub diizinkan pengguna khusus PR #2; tanpa Co-authored-by.
 - Migrasi 000004: konfirmasi absen berpasangan waktu/actor, expense_closures, approval events append-only. Data lama tidak direkayasa menjadi lengkap.
 - Detektor P1 terpisah di internal/detection/p1.go; query deterministik scoped dan fixture idempotent di internal/store/p1.go dan internal/seed/p1.go. Delapan tool tetap sama.
 - ENABLE_P1_RULES=false default; SEED_P1_DEMO=true memerlukan aktivasi P1. COST_VARIANCE_BPS=2000. Fixture lini B/C mempertahankan golden A.
 - Kode React/TypeScript diformat dengan Prettier 3.9.10 (dev dependency terkunci), gofmt untuk Go. Pemeriksaan format ditambahkan ke CI. Tidak mengganti TanStack Query atau stack hosting.
-- Tes integrasi P1, vet, suite Go lengkap, build dan format frontend lulus lokal. Browser P1 lulus (27,2 detik); regresi golden/follow-up/mobile lulus. CI push ae281d1 lulus (run 40720302284), termasuk guard konfirmasi tanpa actor. Perbaikan lanjutan kontrak tool dan kasus absensi yang sumbernya dikoreksi lulus tes agent dan integrasi P1; CI SHA akhir masih harus diperiksa.
+- Tes integrasi P1, vet, suite Go lengkap, build dan format frontend lulus lokal. Browser P1 lulus (27,2 detik); regresi golden/follow-up/mobile lulus. Tes agent dan integrasi koreksi sumber lulus. CI SHA akhir PR 11594a2 lulus: https://github.com/Tegar234-koplox/ops-mind-ai/actions/runs/40723750466 . CI main hasil merge lulus: https://github.com/Tegar234-koplox/ops-mind-ai/actions/runs/40724233043 (verify dan Container startup).
 - Deskripsi delapan tool menjelaskan bukti P1. Jika koreksi sumber menghapus rangkaian ATT-001, tool menampilkan nol shift terkonfirmasi dan needs_verification, bukan mempertahankan angka pemicu lama.
 - Perbaikan integrasi yang ditemukan browser: tombol deteksi kini memakai scope backend (tidak hardcode golden A); mutasi investigasi memperbarui cache latest_run secara langsung agar laporan lama tidak muncul saat follow-up berjalan.
 - Screenshot/trace diarahkan ke direktori ignore; trace dinonaktifkan agar tidak diunggah oleh artifact CI.
 - PostgreSQL portabel aktif port 55432 lewat scripts/portable-postgres.mjs. Jangan reset opsmind_test saat browser/server test aktif.
-- Lanjut: verifikasi browser P1/P0 → review diff → commit/push/PR → checks → keputusan committer khusus PR baru → merge/deploy P1 dan verifikasi daring. Jangan mengasumsikan izin committer PR #1 berlaku umum.
+- Render dep-dbh20ig8v5cc73fqmk80 berstatus live pada 77227f8. Service tetap Free, flag ENABLE_P1_RULES/SEED_P1_DEMO=true. Migrasi 000004 dan fixture idempotent terpasang tanpa reset database.
+- Delapan aturan aktif dan delapan kasus. ATT-001: EMP-092, satu pekerja, tiga shift. OT-002: satu catatan, 75 menit. COST-001: Rp528.999, +2999 bps karena rupiah integer. COST-002: Rp305.841, -2500 bps. Empat baseline masing-masing biaya.
+- Meta nyata ATT-001 run 7c0e144ab0363c1934f3d28e1d966fb7 succeeded, dua putaran/tujuh tool/empat domain, US$0,019606. COST-002 run d47f049bf670286ed669d00cff8f7d83 succeeded, tiga putaran/enam tool/empat domain, US$0,023793. Laporan tidak menyimpulkan pelanggaran atau efisiensi pasti; rekomendasi menunggu manusia.
+- Browser daring lulus: delapan aturan/kasus, laporan Meta, dialog bukti, golden +38%, tanpa pageerror. Screenshot .local/p1-cloud-report.png diperiksa visual. Run golden awal tetap succeeded dengan tujuh evidence; investigasi tambahan pengguna tetap dipertahankan.
+- Saldo demo daring teramati US$0,080398 (termasuk investigasi tambahan pengguna); dua tes P1 menambah US$0,043399. Catatan lokal sebelumnya US$0,059159; gabungan teramati US$0,139557, tetap satu anggaran aplikasi US$20.
 
-## Antrean setelah P1
-Pengguna melaporkan hover effect dashboard tidak berfungsi. Selesaikan P1 terlebih dahulu, lalu reproduksi hover pada dashboard, perbaiki dan verifikasi visual/interaksinya. Jangan mengalihkan pekerjaan P1 yang belum selesai.
+## Hover sedang dikerjakan
+- Reproduksi browser daring membuktikan nav samping, tab, dan tautan bukti tidak memiliki perubahan hover. Tombol utama, kasus nonaktif dan kartu bukti sudah merespons; kasus terpilih tidak merespons. Bukti lokal .local/hover-before.json/png (ignore).
+- Perbaikan terbatas pada feedback interaktif, status navigasi terpilih yang sebelumnya hardcoded, dan pengujian browser. Kartu statistik tetap informasional. Build/format frontend dan tes browser hover lulus (12,8 detik); screenshot desktop/ponsel diperiksa. Branch sudah dipush dan PR #3 https://github.com/Tegar234-koplox/ops-mind-ai/pull/3 dibuat; pada checkpoint ini CI berjalan dan belum merge/deploy. Hasil akhir dicatat di .local/LAST_PROGRESS.md.
+- Tes mencakup hover normal/terpilih, dialog bukti dari tautan, aria-current, fokus keyboard, reduced motion, dan navigasi tab pada viewport ponsel. Nav samping memang disembunyikan pada layout ponsel; tidak menambah menu baru.
+- Contributor repo setelah merge P1 tetap hanya Tegar234-koplox (diverifikasi API). Pengguna mengizinkan committer teknis GitHub khusus PR #3 melalui jawaban terpisah setelah PR siap ditinjau; izin tidak mencakup PR berikutnya. Merge hanya setelah seluruh checks relevan lulus.
