@@ -1,26 +1,38 @@
-import {test,expect} from '@playwright/test'
-test('real Meta report is inspectable and recommendation review is persisted',async({page})=>{
- test.skip(process.env.REAL_META_E2E!=='1','Hanya dijalankan eksplisit terhadap server Meta nyata.')
- await page.goto('/')
- await page.getByLabel('Nama pengguna').fill(process.env.OPERATOR_USERNAME||'operator')
- await page.getByLabel('Kata sandi',{exact:true}).fill(process.env.OPERATOR_PASSWORD!)
- await page.getByRole('button',{name:'Masuk',exact:true}).click()
- await expect(page.getByText('META AI',{exact:true})).toBeVisible()
- await page.locator('.case-item').filter({hasText:'OT-001'}).click()
- await expect(page.getByRole('button',{name:'Buka laporan bukti'})).toBeVisible({timeout:30000})
- await page.getByRole('button',{name:'Buka laporan bukti'}).click()
- await expect(page.getByRole('heading',{name:'Observasi dari catatan sumber'})).toBeVisible()
- await expect(page.locator('.report-intro')).not.toContainText('SIMULASI')
- await expect(page.locator('.evidence-card').filter({hasText:'Interupsi mesin'})).toContainText('110 menit')
- await page.evaluate(()=>window.scrollTo(0,0))
- await page.screenshot({path:'test-results/meta-report-desktop.png',fullPage:true})
- await page.getByRole('button',{name:'Tinjau rekomendasi'}).click()
- const pending=page.locator('.recommendation').filter({has:page.getByRole('button',{name:'Setujui rekomendasi'})}).first()
- if(await pending.count()){
-  await pending.getByLabel('Catatan peninjau').fill('Uji fungsional pada data sintetis; tidak mengotorisasi perubahan bisnis nyata.')
-  await pending.getByRole('button',{name:'Setujui rekomendasi'}).click()
- }
- await expect(page.locator('.audit-list')).toContainText('Keputusan review dicatat')
- await page.evaluate(()=>window.scrollTo(0,0))
- await page.screenshot({path:'test-results/meta-review-desktop.png',fullPage:true})
+import { test, expect } from '@playwright/test'
+test('real Meta report is inspectable and recommendation review is persisted', async ({ page }) => {
+  test.skip(
+    process.env.REAL_META_E2E !== '1',
+    'Hanya dijalankan eksplisit terhadap server Meta nyata.',
+  )
+  await page.goto('/')
+  await page.getByLabel('Nama pengguna').fill(process.env.OPERATOR_USERNAME || 'operator')
+  await page.getByLabel('Kata sandi', { exact: true }).fill(process.env.OPERATOR_PASSWORD!)
+  await page.getByRole('button', { name: 'Masuk', exact: true }).click()
+  await expect(page.getByText('META AI', { exact: true })).toBeVisible()
+  await page.locator('.case-item').filter({ hasText: 'OT-001' }).click()
+  await expect(page.getByRole('button', { name: 'Buka laporan bukti' })).toBeVisible({
+    timeout: 30000,
+  })
+  await page.getByRole('button', { name: 'Buka laporan bukti' }).click()
+  await expect(page.getByRole('heading', { name: 'Observasi dari catatan sumber' })).toBeVisible()
+  await expect(page.locator('.report-intro')).not.toContainText('SIMULASI')
+  await expect(page.locator('.evidence-card').filter({ hasText: 'Interupsi mesin' })).toContainText(
+    '110 menit',
+  )
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.screenshot({ path: test.info().outputPath('meta-report-desktop.png'), fullPage: true })
+  await page.getByRole('button', { name: 'Tinjau rekomendasi' }).click()
+  const pending = page
+    .locator('.recommendation')
+    .filter({ has: page.getByRole('button', { name: 'Setujui rekomendasi' }) })
+    .first()
+  if (await pending.count()) {
+    await pending
+      .getByLabel('Catatan peninjau')
+      .fill('Uji fungsional pada data sintetis; tidak mengotorisasi perubahan bisnis nyata.')
+    await pending.getByRole('button', { name: 'Setujui rekomendasi' }).click()
+  }
+  await expect(page.locator('.audit-list')).toContainText('Keputusan review dicatat')
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.screenshot({ path: test.info().outputPath('meta-review-desktop.png'), fullPage: true })
 })

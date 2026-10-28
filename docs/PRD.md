@@ -11,7 +11,7 @@ Deteksi → investigasi mandiri → bukti lintas departemen → hipotesis → re
 Keberhasilan: golden scenario selesai dengan bukti dari workforce, biaya, produksi, maintenance; 31 hadir + 3 cuti + 4 belum terverifikasi = 38 terjadwal; biaya lembur naik tepat 38%; produksi kurang tepat 17%; downtime lini 110 menit tanpa penghitungan ganda. Semua rekomendasi memiliki bukti dan dapat diterima atau ditolak dengan audit. Investigasi yang datanya tidak cukup menyatakan kekurangan itu.
 
 ## Prioritas
-P0: OT-001, PROD-001, ATT-002, MAINT-001; delapan tool baca; laporan tervalidasi; login; antrean persisten; review dan audit. P1: ATT-001, OT-002, COST-001, COST-002, dirancang tetapi tidak diaktifkan sebagai detektor sebelum P0 stabil. Ditunda: ERP, procurement, warehouse, quality control, predictive maintenance, multi-fasilitas, registrasi publik, penulisan otomatis ke sistem bisnis.
+P0: OT-001, PROD-001, ATT-002, MAINT-001; delapan tool baca; laporan tervalidasi; login; antrean persisten; review dan audit. P1: ATT-001, OT-002, COST-001, COST-002, diimplementasikan setelah P0 stabil atas instruksi pengguna 28 Oktober 2026, aktivasi eksplisit melalui ENABLE_P1_RULES. Ditunda: ERP, procurement, warehouse, quality control, predictive maintenance, multi-fasilitas, registrasi publik, penulisan otomatis ke sistem bisnis.
 
 ## Batas
 Satu pembangun, 3–5 jam/hari, sekitar 36 jam. Anggaran tunai US$0 dan kredit Meta US$150 menurut pengguna; anggaran aplikasi US$20 (15 pengembangan, 5 demo), maksimum US$0,25 per investigasi. Kredit bukan alasan menambah cakupan. Hosting gratis tidak memberikan jaminan ketersediaan produksi.

@@ -18,3 +18,6 @@ summary; observation_evidence_ids; hypotheses (statement, evidence_ids, confiden
 
 ## Biaya dan mode
 Total aplikasi US$20: development 15 dan demo 5, maksimum run 0,25. Reservoir biaya persisten memakai transaksi serialisasi DB; sebelum panggilan reserve harga maksimum input konservatif dan max_completion_tokens, setelah respons rekonsiliasi usage. Reservasi request yang putus dipertahankan sebagai pengeluaran maksimum. Tarif konfigurasi awal input US$1,25 / juta dan output US$4,25 / juta (cached input dihitung tarif penuh demi konservatif), per https://dev.meta.ai/docs/pricing-rate-limits . Tidak auto top-up atau beralih model. Mode mock tersedia eksplisit untuk CI, memakai tool loop dan diberi label SIMULASI di UI; tidak pernah fallback diam-diam dari Meta.
+
+## Bukti aturan P1
+Delapan nama tool tetap sama. get_attendance_summary menyertakan rangkaian absen terkonfirmasi untuk ATT-001; get_overtime_variance menyertakan status persetujuan efektif untuk OT-002; get_cost_breakdown menyertakan baseline/variance/closure untuk COST-001/COST-002. Referensi historis hanya diizinkan jika dipilih query deterministik untuk kasus tersebut; kasus lain tetap pada scope awal. Snapshot dideduplikasi, di-hash, dan tidak memberi akses SQL/model tulis.

@@ -345,7 +345,7 @@ func (a *Server) overview(w http.ResponseWriter, r *http.Request) {
 		a.dbError(w, r, e)
 		return
 	}
-	write(w, 200, map[string]any{"cases": cases, "active_runs": active, "pending_reviews": review, "employees": employees, "facility": "FACTORY-01", "model_mode": a.Config.Mode, "model_name": a.Config.Model, "synthetic": true, "seed": 20261027, "as_of": domain.AsOf, "budget_micros": budget, "credit_limit_micros": a.Config.CreditLimit, "phase": a.Config.Phase})
+	write(w, 200, map[string]any{"cases": cases, "active_runs": active, "pending_reviews": review, "employees": employees, "facility": "FACTORY-01", "model_mode": a.Config.Mode, "model_name": a.Config.Model, "synthetic": true, "seed": 20261027, "as_of": domain.AsOf, "budget_micros": budget, "credit_limit_micros": a.Config.CreditLimit, "phase": a.Config.Phase, "active_rule_count": map[bool]int{false: 4, true: 8}[a.Config.EnableP1]})
 }
 func (a *Server) cases(w http.ResponseWriter, r *http.Request) {
 	limit, offset := 25, 0

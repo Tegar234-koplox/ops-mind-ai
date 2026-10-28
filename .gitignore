@@ -13,3 +13,5 @@ coverage.out
 *.exe
 
 *.tsbuildinfo
+
+test-results/

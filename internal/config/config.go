@@ -12,6 +12,8 @@ import (
 
 type Config struct {
 	DSN, Port, Origin, Username, Password, PasswordHash, SessionSecret, Mode, APIBase, APIKey, Model, Phase, WebDir string
+	EnableP1, SeedP1Demo                                                                                            bool
+	CostThreshold                                                                                                   int64
 	CookieSecure, SeedIfEmpty                                                                                       bool
 	CreditLimit, DevelopmentLimit, DemoLimit, RunLimit                                                              int64
 	MaxRounds, MaxTools, MaxRetries                                                                                 int
@@ -60,7 +62,32 @@ func money(k, d string) (int64, error) {
 	return whole*1000000 + frac, nil
 }
 func Load() (Config, error) {
-	c := Config{DSN: os.Getenv("DATABASE_URL"), Port: env("PORT", "8080"), Origin: env("APP_ORIGIN", "http://localhost:8080"), Username: env("OPERATOR_USERNAME", "operator"), Password: os.Getenv("OPERATOR_PASSWORD"), PasswordHash: os.Getenv("OPERATOR_PASSWORD_HASH"), SessionSecret: os.Getenv("SESSION_SECRET"), Mode: env("MODEL_MODE", "meta"), APIBase: env("MODEL_API_BASE_URL", "https://api.meta.ai/v1"), APIKey: os.Getenv("MODEL_API_KEY"), Model: env("MODEL_NAME", "muse-spark-1.3"), Phase: env("BUDGET_PHASE", "development"), WebDir: env("WEB_DIR", "web/dist"), CookieSecure: env("COOKIE_SECURE", "true") == "true", SeedIfEmpty: env("SEED_IF_EMPTY", "false") == "true"}
+	c := Config{
+		DSN:           os.Getenv("DATABASE_URL"),
+		Port:          env("PORT", "8080"),
+		Origin:        env("APP_ORIGIN", "http://localhost:8080"),
+		Username:      env("OPERATOR_USERNAME", "operator"),
+		Password:      os.Getenv("OPERATOR_PASSWORD"),
+		PasswordHash:  os.Getenv("OPERATOR_PASSWORD_HASH"),
+		SessionSecret: os.Getenv("SESSION_SECRET"),
+		Mode:          env("MODEL_MODE", "meta"),
+		APIBase:       env("MODEL_API_BASE_URL", "https://api.meta.ai/v1"),
+		APIKey:        os.Getenv("MODEL_API_KEY"),
+		Model:         env("MODEL_NAME", "muse-spark-1.3"),
+		Phase:         env("BUDGET_PHASE", "development"),
+		WebDir:        env("WEB_DIR", "web/dist"),
+		CookieSecure:  env("COOKIE_SECURE", "true") == "true",
+		SeedIfEmpty:   env("SEED_IF_EMPTY", "false") == "true",
+	}
+	var flagErr error
+	c.EnableP1, flagErr = strconv.ParseBool(env("ENABLE_P1_RULES", "false"))
+	if flagErr != nil {
+		return c, errors.New("ENABLE_P1_RULES harus boolean")
+	}
+	c.SeedP1Demo, flagErr = strconv.ParseBool(env("SEED_P1_DEMO", "false"))
+	if flagErr != nil || (c.SeedP1Demo && !c.EnableP1) {
+		return c, errors.New("SEED_P1_DEMO memerlukan ENABLE_P1_RULES=true")
+	}
 	if c.DSN == "" {
 		return c, errors.New("DATABASE_URL wajib diisi")
 	}
@@ -106,7 +133,7 @@ func Load() (Config, error) {
 		}
 		*p = v
 	}
-	vals := map[string]int64{"MAX_MODEL_ROUNDS": 8, "MAX_TOOL_CALLS": 16, "MAX_TRANSIENT_RETRIES": 2, "RUN_TIMEOUT_SECONDS": 180, "MODEL_TIMEOUT_SECONDS": 30, "OT_VARIANCE_BPS": 2000, "PRODUCTION_SHORTFALL_BPS": 1000, "DOWNTIME_THRESHOLD_MINUTES": 60, "ATTENDANCE_GRACE_MINUTES": 15}
+	vals := map[string]int64{"MAX_MODEL_ROUNDS": 8, "MAX_TOOL_CALLS": 16, "MAX_TRANSIENT_RETRIES": 2, "RUN_TIMEOUT_SECONDS": 180, "MODEL_TIMEOUT_SECONDS": 30, "OT_VARIANCE_BPS": 2000, "PRODUCTION_SHORTFALL_BPS": 1000, "DOWNTIME_THRESHOLD_MINUTES": 60, "ATTENDANCE_GRACE_MINUTES": 15, "COST_VARIANCE_BPS": 2000}
 	n := map[string]int64{}
 	for k, d := range vals {
 		v, e := integer(k, d)
@@ -124,6 +151,7 @@ func Load() (Config, error) {
 	c.ProdThreshold = n["PRODUCTION_SHORTFALL_BPS"]
 	c.DowntimeThreshold = n["DOWNTIME_THRESHOLD_MINUTES"]
 	c.AttendanceGrace = n["ATTENDANCE_GRACE_MINUTES"]
+	c.CostThreshold = n["COST_VARIANCE_BPS"]
 	if c.MaxRounds < 1 || c.MaxRounds > 8 || c.MaxTools < 1 || c.MaxTools > 16 || c.MaxRetries > 2 || c.RunTimeout <= 0 || c.RunTimeout > 180*time.Second || c.ModelTimeout <= 0 || c.ModelTimeout > 30*time.Second {
 		return c, errors.New("batas agent melampaui guardrail atau nol")
 	}

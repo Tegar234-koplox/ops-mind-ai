@@ -1,10 +1,11 @@
 # Handoff OpsMind AI
 
-Diperbarui 28 Oktober 2026 (WIB). Status: pekerjaan dilanjutkan atas instruksi pengguna; deployment dan golden daring terverifikasi.
+Diperbarui 28 Oktober 2026 (WIB). Status: pekerjaan dilanjutkan atas instruksi pengguna; deployment P0 dan golden daring terverifikasi; pengerjaan P1 aktif atas instruksi terbaru.
 
 ## Keputusan tetap
-- Monolit modular Go/PostgreSQL/React/Meta Model API; hanya OT-001, PROD-001, ATT-002, MAINT-001 dan golden investigation.
-- P1, ERP, microservices, multi-fasilitas, prediksi dan registrasi publik ditunda.
+- Monolit modular Go/PostgreSQL/React/Meta Model API; P0 OT-001, PROD-001, ATT-002, MAINT-001 dan golden tetap dipertahankan. P1 hanya empat aturan yang diminta.
+- Pengguna mengaktifkan ATT-001, OT-002, COST-001, COST-002 pada 28 Oktober dan meminta clean code. ERP, microservices, multi-fasilitas, prediksi dan registrasi publik tetap ditunda.
+- Demo/video ditangani pengguna sendiri. Jangan melanjutkan persiapan video. Petunjuk/kredensial lokal ada di .local/DEMO_ACCESS.md (privat, di-ignore, jangan cetak atau upload).
 - Seluruh data manufaktur sintetis. Empat attendance pending bukan bukti mangkir; tiga cuti disetujui dikecualikan. Korelasi bukan kausalitas. Review tidak menulis data bisnis.
 - Tunai US$0. Batas aplikasi US$20 (15 development/5 demo), US$0,25/run. Tidak membeli layanan atau domain.
 - Author dan committer hanya Tegar Sang Putra / Tegar234-koplox, tanpa GPT/bot atau Co-authored-by.
@@ -61,8 +62,23 @@ Diperbarui 28 Oktober 2026 (WIB). Status: pekerjaan dilanjutkan atas instruksi p
 - Ground truth eval/ tidak dibaca runtime/model. Validasi schema/hash/referensi tidak membuktikan kebenaran semua narasi.
 
 ## Urutan lanjut yang dibatasi plan
-1. Checkout lokal kini branch codex/demo-preparation di atas origin/main c3fd411. Pembaruan checkpoint setelah merge disimpan sebagai commit lokal; belum di-push atau dibuatkan PR baru karena tahap video belum dimulai. Perubahan selanjutnya mengikuti commit → push branch → PR, tanpa push langsung main.
-2. Lanjutkan video 180 detik, akses juri privat, dan cadangan rekaman investigasi tersimpan berlabel jelas. Video dan submission belum dilakukan.
-3. Verifikasi hook deployment otomatis bila diperlukan; deployment manual setelah CI sudah berhasil. Tidak perlu mengulang run Meta atau seluruh suite untuk perubahan dokumentasi saja.
-4. Cocokkan aturan final di portal peserta. Target internal 4 November 2026 18.00 WIB; tenggat event menurut plan 5 November 09.00 WIB.
-5. Jangan menambah aturan P1 atau modul di luar plan tanpa keputusan pengguna.
+1. Selesaikan P1 pada branch codex/p1-detection dengan commit → push branch → PR, tanpa push langsung main. Checkpoint dasar 693b33d ikut branch ini.
+2. Setelah CI dan merge, aktifkan flag P1 pada Render dan verifikasi migrasi, fixture, empat deteksi serta satu/dua investigasi Meta nyata. Pastikan golden tersimpan tetap utuh.
+3. Setelah P1 selesai, reproduksi dan perbaiki hover dashboard sesuai permintaan pengguna.
+4. Demo/video ditangani pengguna sendiri. Agent tidak melanjutkan pekerjaan video atau submission tanpa instruksi berikutnya.
+5. Target internal menurut plan tetap 4 November 2026 18.00 WIB; event 5 November 09.00 WIB. Jangan memperluas ke modul lain.
+
+## P1 sedang dikerjakan (checkpoint sementara)
+- Branch lokal diganti menjadi codex/p1-detection; commit dasar checkpoint 693b33d di atas main c3fd411. Perubahan P1 belum dipush/PR/deploy.
+- Migrasi 000004: konfirmasi absen berpasangan waktu/actor, expense_closures, approval events append-only. Data lama tidak direkayasa menjadi lengkap.
+- Detektor P1 terpisah di internal/detection/p1.go; query deterministik scoped dan fixture idempotent di internal/store/p1.go dan internal/seed/p1.go. Delapan tool tetap sama.
+- ENABLE_P1_RULES=false default; SEED_P1_DEMO=true memerlukan aktivasi P1. COST_VARIANCE_BPS=2000. Fixture lini B/C mempertahankan golden A.
+- Kode React/TypeScript diformat dengan Prettier 3.9.10 (dev dependency terkunci), gofmt untuk Go. Pemeriksaan format ditambahkan ke CI. Tidak mengganti TanStack Query atau stack hosting.
+- Tes integrasi P1, vet, suite Go lengkap, build dan format frontend lulus lokal. Browser P1 lulus (27,2 detik); regresi golden/follow-up/mobile lulus. CI remote untuk perubahan ini belum dijalankan. Guard konfirmasi tanpa actor ditambahkan sesudah suite lokal dan akan diperiksa CI.
+- Perbaikan integrasi yang ditemukan browser: tombol deteksi kini memakai scope backend (tidak hardcode golden A); mutasi investigasi memperbarui cache latest_run secara langsung agar laporan lama tidak muncul saat follow-up berjalan.
+- Screenshot/trace diarahkan ke direktori ignore; trace dinonaktifkan agar tidak diunggah oleh artifact CI.
+- PostgreSQL portabel aktif port 55432 lewat scripts/portable-postgres.mjs. Jangan reset opsmind_test saat browser/server test aktif.
+- Lanjut: verifikasi browser P1/P0 → review diff → commit/push/PR → checks → keputusan committer khusus PR baru → merge/deploy P1 dan verifikasi daring. Jangan mengasumsikan izin committer PR #1 berlaku umum.
+
+## Antrean setelah P1
+Pengguna melaporkan hover effect dashboard tidak berfungsi. Selesaikan P1 terlebih dahulu, lalu reproduksi hover pada dashboard, perbaiki dan verifikasi visual/interaksinya. Jangan mengalihkan pekerjaan P1 yang belum selesai.

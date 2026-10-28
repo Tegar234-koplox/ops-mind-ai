@@ -69,6 +69,14 @@ func run() error {
 		log.Info("synthetic dataset ready", "created", created, "seed", 20261027)
 		return nil
 	}
+	if command == "seed-p1" {
+		created, err := seed.RunP1(ctx, s)
+		if err != nil {
+			return err
+		}
+		log.Info("synthetic P1 fixtures ready", "created", created)
+		return nil
+	}
 	c, e := config.Load()
 	if e != nil {
 		return e
@@ -83,10 +91,15 @@ func run() error {
 		return nil
 	}
 	if command != "serve" {
-		return fmt.Errorf("command: serve | migrate | seed | detect | hash-password")
+		return fmt.Errorf("command: serve | migrate | seed | seed-p1 | detect | hash-password")
 	}
 	if c.SeedIfEmpty {
 		if _, e = seed.Run(ctx, s); e != nil {
+			return e
+		}
+	}
+	if c.SeedP1Demo {
+		if _, e = seed.RunP1(ctx, s); e != nil {
 			return e
 		}
 	}

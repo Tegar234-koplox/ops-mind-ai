@@ -21,6 +21,8 @@ erDiagram
  production_lines ||--o{ budgets : plans
  anomaly_cases ||--o{ investigation_runs : investigates
  shift_instances ||--o{ anomaly_cases : triggers
+ shift_instances ||--o| expense_closures : closes
+ overtime_records ||--o{ overtime_approval_events : records
  investigation_runs ||--o{ case_evidence : retrieves
  investigation_runs ||--o{ tool_executions : executes
  investigation_runs ||--o{ investigation_events : streams
@@ -38,3 +40,6 @@ case_evidence menyimpan snapshot kanonik, hash SHA-256, daftar SourceRef bertipe
 
 ## Migrasi
 000001: data operasional dan constraint. 000002: kasus, antrean, event, tool, evidence, rekomendasi, review, audit, idempotensi dan budget. Pasangan up/down; rollback menghapus dari dependensi paling bawah. Migrate memakai advisory lock. Seed Go terpisah, transactional, reproducible dan berhenti jika dataset sudah terisi. Tidak mereset database melalui endpoint. Tidak menyimpan ground truth di database aplikasi.
+
+## Migrasi P1 000004
+`attendance_records` mendapat absence_confirmed_at/by yang harus berpasangan, tanpa punch, verified=false dan source_complete=true. `expense_closures` menyimpan konfirmasi penutupan ledger per shift. `overtime_approval_events` menyimpan approval/revocation append-only; pasangan overtime_id/occurred_at unik untuk mencegah urutan ambigu. Indeks approval_record_time mendukung pembacaan event terakhir. Data lama tidak diberi konfirmasi atau closure buatan oleh migrasi. Seed P1 terpisah memakai audit marker versi dan transaksi untuk idempotensi. Down migration menghapus histori P1; jangan rollback data demo/operasional tanpa menyimpan histori yang diperlukan.

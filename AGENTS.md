@@ -5,7 +5,7 @@ Sebelum mengubah proyek, baca docs/HANDOFF.md, docs/ARCHITECTURE.md dan docs/IMP
 ## Cara bekerja
 - Gunakan bahasa Indonesia. Berikan penilaian langsung, analitis dan faktual; jelaskan asumsi lemah, risiko, serta pekerjaan yang benar-benar belum selesai.
 - Arsitektur telah disetujui: monolit modular Go, PostgreSQL, React/TypeScript, Meta Model API. Jangan meminta persetujuan arsitektur ulang.
-- P0 hanya OT-001, PROD-001, ATT-002, MAINT-001 dan golden investigation lengkap. Empat aturan P1 dan modul lanjutan tetap ditunda sampai ada keputusan pengguna.
+- P0 hanya OT-001, PROD-001, ATT-002, MAINT-001 dan golden investigation lengkap. Pengguna mengaktifkan pengerjaan P1 pada 28 Oktober 2026: ATT-001, OT-002, COST-001, COST-002. Modul lanjutan lain tetap ditunda. Demo dan video ditangani pengguna sendiri.
 - Jangan menambah microservices, Kafka, Kubernetes, Python service, ERP, multi-fasilitas, registrasi publik atau fitur di luar plan.
 - Semua data manufaktur sintetis. Empat attendance pending bukan bukti mangkir; cuti disetujui harus dikecualikan. Korelasi bukan pembuktian sebab.
 - Fakta dan uang dihitung Go; model hanya melalui tool baca yang diizinkan. Review mencatat keputusan tanpa menulis data bisnis.

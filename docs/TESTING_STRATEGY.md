@@ -16,3 +16,6 @@ Login gagal/berhasil, inbox, deteksi, progres SSE, refresh/resume, laporan dan d
 go test ./...; go vet ./...; go test -race ./... bila compiler C tersedia; TEST_DATABASE_URL=... go test ./internal/store ./internal/httpapi ./internal/agent; di web: npm ci, npm run build, npm run test:e2e. CI menyediakan PostgreSQL 18 dan mock; tidak menggunakan Meta key. Test integrasi yang skip tanpa TEST_DATABASE_URL harus dilaporkan sebagai skip, bukan lulus.
 
 Lulus MVP: angka fixture tepat; 4 aturan; semua tool scoped; laporan tervalidasi; review diaudit; state selamat restart; batas biaya benar; frontend terbuild; alur browser selesai. Deployment dan Meta nyata hanya disebut terverifikasi jika benar-benar dijalankan, bukan karena config tersedia.
+
+## Pengujian P1
+Tes upgrade v3 berisi data → v4 memastikan tidak ada closure/konfirmasi buatan. Fixture idempotent, pengecualian cuti/libur, konfirmasi future/pending, revocation append-only/future, threshold biaya tepat +/-20%, baseline kurang/nol, invoice belum lengkap dan scope historis diuji lewat PostgreSQL. P1 agent memakai mock eksplisit di CI. Browser p1.spec.ts memeriksa empat aturan, bukti rangkaian dan golden +38% yang tetap utuh. CI juga memeriksa format TypeScript. Meta nyata tetap terpisah.
