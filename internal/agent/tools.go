@@ -17,6 +17,17 @@ import (
 
 var ToolNames = []string{"get_shift_staffing", "get_attendance_summary", "get_approved_leave", "get_overtime_variance", "get_cost_breakdown", "get_production_performance", "get_downtime_events", "get_evidence_record"}
 
+var toolDescriptions = map[string]string{
+	"get_shift_staffing":         "Rekonsiliasi roster, hadir terverifikasi, cuti, absen terkonfirmasi dan status belum jelas.",
+	"get_attendance_summary":     "Kelengkapan punch dan, untuk ATT-001, konfirmasi absen pada tiga penugasan kerja terakhir. Pending tidak membuktikan mangkir.",
+	"get_approved_leave":         "Cuti disetujui untuk mengecualikan absensi yang sah.",
+	"get_overtime_variance":      "Biaya lembur aktual dan median empat pembanding dari Go; untuk OT-002 mencakup persetujuan efektif dan riwayat pembatalan.",
+	"get_cost_breakdown":         "Pengeluaran per kategori; untuk COST-001/COST-002 mencakup closure posting, baseline aktivitas dan selisih yang dihitung Go.",
+	"get_production_performance": "Target dan output aktual beserta shortfall dari Go.",
+	"get_downtime_events":        "Downtime union tanpa penghitungan ganda overlap.",
+	"get_evidence_record":        "Buka ulang snapshot bukti yang sudah dikumpulkan.",
+}
+
 type ToolArgs struct {
 	ShiftID    string `json:"shift_id"`
 	EvidenceID string `json:"evidence_id,omitempty"`
@@ -62,7 +73,20 @@ func Definitions() []map[string]any {
 			props["evidence_id"] = map[string]any{"type": "string"}
 			required = append(required, "evidence_id")
 		}
-		out = append(out, map[string]any{"type": "function", "function": map[string]any{"name": n, "description": map[string]string{"get_shift_staffing": "Rekonsiliasi roster, hadir terverifikasi, cuti dan status belum jelas.", "get_attendance_summary": "Kelengkapan punch; pending tidak membuktikan mangkir.", "get_approved_leave": "Cuti disetujui untuk mengecualikan absensi yang sah.", "get_overtime_variance": "Biaya lembur aktual dan median empat pembanding, dihitung Go.", "get_cost_breakdown": "Pengeluaran lengkap per kategori pada shift.", "get_production_performance": "Target dan output aktual beserta shortfall dari Go.", "get_downtime_events": "Downtime union tanpa penghitungan ganda overlap.", "get_evidence_record": "Buka ulang snapshot bukti yang sudah dikumpulkan."}[n], "strict": true, "parameters": map[string]any{"type": "object", "properties": props, "required": required, "additionalProperties": false}}})
+		out = append(out, map[string]any{
+			"type": "function",
+			"function": map[string]any{
+				"name":        n,
+				"description": toolDescriptions[n],
+				"strict":      true,
+				"parameters": map[string]any{
+					"type":                 "object",
+					"properties":           props,
+					"required":             required,
+					"additionalProperties": false,
+				},
+			},
+		})
 	}
 	return out
 }
@@ -109,7 +133,14 @@ func ExecuteTool(ctx context.Context, s *store.Store, c domain.Case, run domain.
 				return v, err
 			}
 			v.Facts["confirmed_absence_workers"] = fmt.Sprint(len(streaks.Employees))
-			v.Facts["consecutive_shifts"] = "3"
+			v.Facts["required_consecutive_shifts"] = "3"
+			v.Facts["consecutive_shifts"] = "0"
+			if len(streaks.Employees) > 0 {
+				v.Facts["consecutive_shifts"] = "3"
+			} else {
+				v.Completeness = "needs_verification"
+				v.Notes = append(v.Notes, "Rangkaian pemicu kasus tidak lagi didukung sumber terkini; tinjau koreksi data sebelum mengambil keputusan.")
+			}
 			v.Facts["employee_ids"] = store.EmployeeIDs(streaks)
 			v.Sources = append(v.Sources, streaks.Sources...)
 			v.Notes = append(v.Notes, "Rangkaian hanya dari tiga shift kerja terjadwal terakhir dengan sumber lengkap dan konfirmasi supervisor; cuti memutus rangkaian, hari libur tidak dihitung.")

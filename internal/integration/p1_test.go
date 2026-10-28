@@ -153,6 +153,10 @@ func TestP1RulesAndEvidence(t *testing.T) {
 			if e != nil || len(v.Employees) != 0 {
 				t.Fatal(v, e)
 			}
+			ev, err := agent.ExecuteTool(ctx, s, found["ATT-001"], domain.Run{ID: "p1-stale-run"}, "get_attendance_summary", agent.ToolArgs{ShiftID: sh.ID})
+			if err != nil || ev.Facts["consecutive_shifts"] != "0" || ev.Completeness != "needs_verification" {
+				t.Fatal("stale attendance case retained confirmed streak", ev, err)
+			}
 		}
 		exec("INSERT INTO leave_records VALUES('P1-TEST-LEAVE',$1,$2,$3,true)", employee, begin, end)
 		expectNone()

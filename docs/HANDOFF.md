@@ -69,12 +69,13 @@ Diperbarui 28 Oktober 2026 (WIB). Status: pekerjaan dilanjutkan atas instruksi p
 5. Target internal menurut plan tetap 4 November 2026 18.00 WIB; event 5 November 09.00 WIB. Jangan memperluas ke modul lain.
 
 ## P1 sedang dikerjakan (checkpoint sementara)
-- Branch lokal diganti menjadi codex/p1-detection; commit dasar checkpoint 693b33d di atas main c3fd411. Perubahan P1 belum dipush/PR/deploy.
+- Branch codex/p1-detection sudah dipush; commit awal P1 ae281d1. PR #2: https://github.com/Tegar234-koplox/ops-mind-ai/pull/2 . Belum merge/deploy.
 - Migrasi 000004: konfirmasi absen berpasangan waktu/actor, expense_closures, approval events append-only. Data lama tidak direkayasa menjadi lengkap.
 - Detektor P1 terpisah di internal/detection/p1.go; query deterministik scoped dan fixture idempotent di internal/store/p1.go dan internal/seed/p1.go. Delapan tool tetap sama.
 - ENABLE_P1_RULES=false default; SEED_P1_DEMO=true memerlukan aktivasi P1. COST_VARIANCE_BPS=2000. Fixture lini B/C mempertahankan golden A.
 - Kode React/TypeScript diformat dengan Prettier 3.9.10 (dev dependency terkunci), gofmt untuk Go. Pemeriksaan format ditambahkan ke CI. Tidak mengganti TanStack Query atau stack hosting.
-- Tes integrasi P1, vet, suite Go lengkap, build dan format frontend lulus lokal. Browser P1 lulus (27,2 detik); regresi golden/follow-up/mobile lulus. CI remote untuk perubahan ini belum dijalankan. Guard konfirmasi tanpa actor ditambahkan sesudah suite lokal dan akan diperiksa CI.
+- Tes integrasi P1, vet, suite Go lengkap, build dan format frontend lulus lokal. Browser P1 lulus (27,2 detik); regresi golden/follow-up/mobile lulus. CI push ae281d1 lulus (run 40720302284), termasuk guard konfirmasi tanpa actor. Perbaikan lanjutan kontrak tool dan kasus absensi yang sumbernya dikoreksi lulus tes agent dan integrasi P1; CI SHA akhir masih harus diperiksa.
+- Deskripsi delapan tool menjelaskan bukti P1. Jika koreksi sumber menghapus rangkaian ATT-001, tool menampilkan nol shift terkonfirmasi dan needs_verification, bukan mempertahankan angka pemicu lama.
 - Perbaikan integrasi yang ditemukan browser: tombol deteksi kini memakai scope backend (tidak hardcode golden A); mutasi investigasi memperbarui cache latest_run secara langsung agar laporan lama tidak muncul saat follow-up berjalan.
 - Screenshot/trace diarahkan ke direktori ignore; trace dinonaktifkan agar tidak diunggah oleh artifact CI.
 - PostgreSQL portabel aktif port 55432 lewat scripts/portable-postgres.mjs. Jangan reset opsmind_test saat browser/server test aktif.
