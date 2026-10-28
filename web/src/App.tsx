@@ -267,13 +267,25 @@ function Workspace({ session }: { session: Session }) {
         <Brand />
         <div className="workspace-label">WORKSPACE</div>
         <nav aria-label="Navigasi utama">
-          <button className="nav-item selected" onClick={() => setTab('live')}>
+          <button
+            className={'nav-item' + (tab === 'live' ? ' selected' : '')}
+            aria-current={tab === 'live' ? 'page' : undefined}
+            onClick={() => setTab('live')}
+          >
             <LayoutList size={18} /> Investigasi <span>{data?.cases ?? 0}</span>
           </button>
-          <button className="nav-item" onClick={() => setTab('report')}>
+          <button
+            className={'nav-item' + (tab === 'report' ? ' selected' : '')}
+            aria-current={tab === 'report' ? 'page' : undefined}
+            onClick={() => setTab('report')}
+          >
             <Layers3 size={18} /> Laporan bukti
           </button>
-          <button className="nav-item" onClick={() => setTab('review')}>
+          <button
+            className={'nav-item' + (tab === 'review' ? ' selected' : '')}
+            aria-current={tab === 'review' ? 'page' : undefined}
+            onClick={() => setTab('review')}
+          >
             <ShieldCheck size={18} /> Review manusia <i className="nav-dot" />
           </button>
         </nav>
