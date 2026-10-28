@@ -3,7 +3,7 @@
 ## Waktu dan rekonsiliasi
 Fasilitas sintetis FACTORY-01 memakai Asia/Bangkok (UTC+7), mata uang IDR. Shift S1 06.00–14.00, S2 14.00–22.00, S3 22.00–06.00 esok hari. Tanggal operasional adalah tanggal mulai shift. Semua timestamp database timestamptz. Interval memakai batas [mulai, selesai); durasi dan overlap dihitung Go. Karyawan tidak boleh ditugaskan ke dua shift bertumpang tindih.
 
-Kehadiran lengkap berarti kedua punch terverifikasi dan urut. Cuti yang disetujui dan menutupi shift dikecualikan dari kewajiban punch. Catatan pending atau punch yang hilang adalah kekurangan bukti, bukan bukti mangkir. Holiday dan shift belum selesai tidak dihitung sebagai absensi. Grace period sesudah akhir shift: 15 menit. Tiga absen berturut-turut berarti tiga shift kerja terjadwal terakhir, bukan tiga tanggal kalender; ATT-001 hanya rancangan P1.
+Kehadiran lengkap berarti kedua punch terverifikasi dan urut. Cuti yang disetujui dan menutupi shift dikecualikan dari kewajiban punch. Catatan pending atau punch yang hilang adalah kekurangan bukti, bukan bukti mangkir. Holiday dan shift belum selesai tidak dihitung sebagai absensi. Grace period sesudah akhir shift: 15 menit. Tiga absen berturut-turut berarti tiga shift kerja terjadwal terakhir, bukan tiga tanggal kalender; ATT-001 diaktifkan opsional pada tahap P1. Tiga penugasan tersebut harus memiliki konfirmasi absen supervisor, bukan sekadar punch kosong. Cuti memutus rangkaian; hari libur tidak masuk urutan.
 
 ## Golden scenario
 Assembly Line A, shift S1 pada 26 Oktober 2026. Sebanyak 38 orang ditugaskan: 31 terverifikasi hadir, tiga cuti disetujui, empat catatan pending (kedua punch belum terverifikasi). Tidak ada kesimpulan pelanggaran pekerja. Produksi target 1.000, aktual 830. Biaya lembur Rp1.380.000 dibanding median empat shift pembanding Rp1.000.000: +38%. Downtime lini gabungan 110 menit. Ketiga cuti tetap merupakan faktor ketersediaan staffing yang sah, bukan kesalahan pekerja.
@@ -16,3 +16,6 @@ Seed 20261027, 60 tanggal operasional 28 Agustus–26 Oktober, evaluasi per 27 O
 
 ## Batas interpretasi
 Kenaikan biaya bukan fraud; absensi belum jelas bukan misconduct; tidak menyimpulkan kondisi kesehatan atau kejujuran. Downtime dan staffing yang bersamaan dengan penurunan produksi adalah hipotesis kontribusi, bukan bukti kausal. Maintenance MVP hanya downtime dan konteks mesin; work order serta jadwal preventive maintenance ditunda.
+
+## Sumber tambahan P1
+Konfirmasi absen menyimpan waktu dan actor; keduanya harus ada dan catatan sumber lengkap. Pembatalan persetujuan lembur disimpan sebagai kejadian baru tanpa menghapus approval sebelumnya. Closure ledger expense tidak otomatis dibuat oleh migrasi; posting nol harus dikonfirmasi dengan closure yang sah. Fixture sintetis P1 dijalankan eksplisit dan tidak mereset golden atau investigasi tersimpan.

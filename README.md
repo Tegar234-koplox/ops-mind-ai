@@ -1,6 +1,6 @@
 # OpsMind AI
 
-Platform investigasi operasional manufaktur: deteksi deterministik Go → agent Meta memilih bukti lintas departemen → laporan → review manusia. Seluruh dataset sintetis. Empat aturan P0, delapan tool baca, PostgreSQL persisten, React/TypeScript, login, SSE dan audit.
+Platform investigasi operasional manufaktur: deteksi deterministik Go → agent Meta memilih bukti lintas departemen → laporan → review manusia. Seluruh dataset sintetis. Empat aturan P0 dan empat P1 opsional, delapan tool baca, PostgreSQL persisten, React/TypeScript, login, SSE dan audit.
 
 ## Demo daring
 
@@ -45,6 +45,12 @@ Set-Location ..
 
 Assembly Line A, S1, 26 Oktober 2026: biaya lembur Rp1.380.000 terhadap baseline Rp1.000.000 (+38%); output 830/1000 (-17%); 38 penugasan =31 hadir terverifikasi +3 cuti disetujui +4 pending; downtime union 110 menit. Seed 20261027, 150 pekerja, 3 lini, 8 mesin, 60 tanggal kalender. Jam evaluasi fixture: 27 Oktober 2026 06.15 WIB; ini bukan data live hari ini. Ground truth berada di `eval/` dan tidak dibaca runtime/model.
 
+## Empat aturan P1
+
+P1 ditambahkan atas instruksi pemilik setelah P0 stabil. Aktifkan `ENABLE_P1_RULES=true`; default tetap false. Untuk data contoh tambahan, jalankan `seed-p1` atau set `SEED_P1_DEMO=true` secara eksplisit. Fixture hanya memperluas dataset sintetis yang dikenali, tanpa mereset laporan golden. ATT-001 memerlukan konfirmasi absen, OT-002 membaca histori persetujuan, COST-001/COST-002 memerlukan baseline aktivitas dan closure posting. Threshold biaya: `COST_VARIANCE_BPS=2000`.
+
+Gunakan `gofmt` untuk Go dan `npm run format`/`npm run format:check` di web untuk format TypeScript. Aturan P1 dipisahkan dari alur deteksi utama; migrasi, query, seed dan UI tetap pada monolit yang sama.
+
 ## Pengujian
 
 ```powershell
@@ -74,7 +80,7 @@ Model tidak memiliki SQL bebas atau tool tulis. Semua tool scoped ke shift/kasus
 
 Satu akun operator environment, cookie signed 8 jam. Logout menghapus cookie browser; MVP belum memiliki pencabutan semua sesi lintas perangkat. Idempotensi memutar ulang byte respons; operasi yang crash sebelum respons tersimpan tetap pending untuk mencegah pengulangan ambigu. Periksa state kasus sebelum mengirim operasi baru. Review laporan lama ditolak. Audit append-only.
 
-Belum termasuk empat aturan P1, ERP, predictive maintenance, public signup, multitenancy, maupun sistem produksi perusahaan.
+Belum termasuk ERP, predictive maintenance, public signup, multitenancy, maupun sistem produksi perusahaan.
 
 ## Dokumen dan sumber
 

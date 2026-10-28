@@ -152,14 +152,16 @@ func (MockModel) Complete(ctx context.Context, run domain.Run, messages []Messag
 			}
 		}
 	}
-	shift := ""
+	shift, rule := "", ""
 	for _, m := range messages {
 		if m.Role == "user" {
 			var c struct {
-				ShiftID string `json:"shift_id"`
+				ShiftID string      `json:"shift_id"`
+				Case    domain.Case `json:"case"`
 			}
 			if json.Unmarshal([]byte(m.Content), &c) == nil {
 				shift = c.ShiftID
+				rule = c.Case.RuleID
 			}
 		}
 	}
@@ -204,6 +206,12 @@ func (MockModel) Complete(ctx context.Context, run domain.Run, messages []Messag
 		Hypotheses:             []domain.Hypothesis{{Statement: "Downtime dan ketersediaan operator mungkin berkontribusi terhadap kebutuhan lembur dan output yang lebih rendah.", EvidenceIDs: []string{byTool["get_overtime_variance"], byTool["get_shift_staffing"], byTool["get_production_performance"], byTool["get_downtime_events"]}, Confidence: "medium", CounterEvidence: []string{"Waktu tunggu material dan perubahan product mix belum tersedia; dampak tiap faktor belum diukur."}}},
 		InformationGaps:        []string{"Verifikasi catatan kehadiran yang belum lengkap; cuti disetujui bukan pelanggaran.", "Diperlukan urutan kejadian dan penilaian supervisor untuk menguji hubungan kausal."},
 		Recommendations:        []domain.ProposedAction{{Title: "Verifikasi catatan kehadiran bersama supervisor", Rationale: "Lengkapi bukti sebelum menilai ketersediaan pekerja; kecualikan cuti yang sah.", EvidenceIDs: []string{byTool["get_attendance_summary"], byTool["get_approved_leave"]}, Department: "Workforce"}, {Title: "Tinjau interupsi mesin dan rencana pemulihan lini", Rationale: "Cocokkan log maintenance dan kehilangan output sebelum mengubah alokasi lembur.", EvidenceIDs: []string{byTool["get_downtime_events"], byTool["get_production_performance"]}, Department: "Maintenance"}}}
+	if rule == "ATT-001" || rule == "OT-002" || rule == "COST-001" || rule == "COST-002" {
+		report.Summary = "SIMULASI: kasus " + rule + " diperiksa melalui catatan sumber dan bukti lintas departemen. Keputusan memerlukan review manusia; tidak menyimpulkan pelanggaran atau efisiensi."
+		report.Hypotheses = []domain.Hypothesis{{Statement: "Temuan perlu direkonsiliasi dengan kelengkapan sumber dan konteks operasional sebelum menentukan tindakan.", EvidenceIDs: ids, Confidence: "low", CounterEvidence: []string{"Data yang tersedia tidak membuktikan sebab-akibat atau kesalahan pekerja."}}}
+		report.InformationGaps = []string{"Penjelasan supervisor dan verifikasi konteks operasional diperlukan."}
+		report.Recommendations = []domain.ProposedAction{{Title: "Tinjau sumber dan konfirmasi konteks kasus " + rule, Rationale: "Gunakan bukti tersimpan sebelum membuat keputusan operasional; review ini tidak mengubah data bisnis.", EvidenceIDs: ids, Department: "Operasi"}}
+	}
 	return Message{Role: "assistant", Content: string(store.JSON(report))}, nil
 }
 

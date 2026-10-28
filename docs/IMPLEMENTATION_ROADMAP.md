@@ -19,3 +19,6 @@ Urutan dependensi: fondasi→schema→Meta adapter→seed→deteksi→agent→go
 Jika 31 Oktober terancam: tunda ATT-001/OT-002/COST-001/COST-002, filter tambahan, visual polishing, report export. Pertahankan model nyata, semua bukti golden, login, review, audit, queue recovery dan budget. Jangan menambah ERP, mikroservis, Kafka, Kubernetes, Python service, multitenancy atau prediksi.
 
 Risiko prioritas: runtime/toolchain belum siap; key/kredit tidak tersedia di environment; kelengkapan sumber disalahartikan sebagai pelanggaran; hallucination meski JSON valid; cold start hosting; biaya retry saat crash; aturan kompetisi belum lengkap. Mitigasi masing-masing ada di ARCHITECTURE, AI_AGENT_DESIGN dan HACKATHON_DEMO_PLAN.
+
+## Perubahan urutan atas instruksi pemilik, 28 Oktober
+P0 dan golden daring sudah stabil; pengguna menangani demo/video sendiri dan meminta pengerjaan ATT-001, OT-002, COST-001, COST-002 terlebih dahulu. P1 tetap dalam monolit dan delapan tool baca. Tidak memperluas ke ERP atau modul lanjutan. Syarat penyelesaian: migrasi upgrade aman, fixture terpisah, tes batas/sumber tidak lengkap, browser, CI, PR dan deployment terverifikasi.

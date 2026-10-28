@@ -87,7 +87,7 @@ func (e Engine) Execute(ctx context.Context, shiftID string, asOf time.Time) ([]
 			return nil, err
 		}
 		if staffing.Unverified > 0 && !sh.End.Add(time.Duration(e.Config.AttendanceGrace)*time.Minute).After(asOf) {
-			c := makeCase("ATT-002", "Workforce", "needs_verification", map[string]string{"complete_required_punches": store.Num(staffing.Scheduled - staffing.Leave)}, map[string]string{"unverified": store.Num(staffing.Unverified), "approved_leave": store.Num(staffing.Leave), "verified_present": store.Num(staffing.Present)}, "Punch belum lengkap atau terverifikasi; tidak menyimpulkan mangkir atau pelanggaran.", staffing.Sources)
+			c := makeCase("ATT-002", "Workforce", "needs_verification", map[string]string{"complete_required_punches": store.Num(staffing.Scheduled - staffing.Leave - staffing.ConfirmedAbsent)}, map[string]string{"unverified": store.Num(staffing.Unverified), "approved_leave": store.Num(staffing.Leave), "verified_present": store.Num(staffing.Present)}, "Punch belum lengkap atau terverifikasi; tidak menyimpulkan mangkir atau pelanggaran.", staffing.Sources)
 			c.Severity = "low"
 			cases = append(cases, c)
 		}
@@ -101,6 +101,13 @@ func (e Engine) Execute(ctx context.Context, shiftID string, asOf time.Time) ([]
 				c.Severity = "high"
 			}
 			cases = append(cases, c)
+		}
+		if e.Config.EnableP1 {
+			advancedCases, err := e.p1Cases(ctx, sh, asOf)
+			if err != nil {
+				return nil, err
+			}
+			cases = append(cases, advancedCases...)
 		}
 		for _, c := range cases {
 			saved, created, err := e.Store.InsertCase(ctx, c, e.Config.Mode)

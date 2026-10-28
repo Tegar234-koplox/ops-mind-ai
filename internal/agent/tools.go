@@ -17,6 +17,17 @@ import (
 
 var ToolNames = []string{"get_shift_staffing", "get_attendance_summary", "get_approved_leave", "get_overtime_variance", "get_cost_breakdown", "get_production_performance", "get_downtime_events", "get_evidence_record"}
 
+var toolDescriptions = map[string]string{
+	"get_shift_staffing":         "Rekonsiliasi roster, hadir terverifikasi, cuti, absen terkonfirmasi dan status belum jelas.",
+	"get_attendance_summary":     "Kelengkapan punch dan, untuk ATT-001, konfirmasi absen pada tiga penugasan kerja terakhir. Pending tidak membuktikan mangkir.",
+	"get_approved_leave":         "Cuti disetujui untuk mengecualikan absensi yang sah.",
+	"get_overtime_variance":      "Biaya lembur aktual dan median empat pembanding dari Go; untuk OT-002 mencakup persetujuan efektif dan riwayat pembatalan.",
+	"get_cost_breakdown":         "Pengeluaran per kategori; untuk COST-001/COST-002 mencakup closure posting, baseline aktivitas dan selisih yang dihitung Go.",
+	"get_production_performance": "Target dan output aktual beserta shortfall dari Go.",
+	"get_downtime_events":        "Downtime union tanpa penghitungan ganda overlap.",
+	"get_evidence_record":        "Buka ulang snapshot bukti yang sudah dikumpulkan.",
+}
+
 type ToolArgs struct {
 	ShiftID    string `json:"shift_id"`
 	EvidenceID string `json:"evidence_id,omitempty"`
@@ -62,7 +73,20 @@ func Definitions() []map[string]any {
 			props["evidence_id"] = map[string]any{"type": "string"}
 			required = append(required, "evidence_id")
 		}
-		out = append(out, map[string]any{"type": "function", "function": map[string]any{"name": n, "description": map[string]string{"get_shift_staffing": "Rekonsiliasi roster, hadir terverifikasi, cuti dan status belum jelas.", "get_attendance_summary": "Kelengkapan punch; pending tidak membuktikan mangkir.", "get_approved_leave": "Cuti disetujui untuk mengecualikan absensi yang sah.", "get_overtime_variance": "Biaya lembur aktual dan median empat pembanding, dihitung Go.", "get_cost_breakdown": "Pengeluaran lengkap per kategori pada shift.", "get_production_performance": "Target dan output aktual beserta shortfall dari Go.", "get_downtime_events": "Downtime union tanpa penghitungan ganda overlap.", "get_evidence_record": "Buka ulang snapshot bukti yang sudah dikumpulkan."}[n], "strict": true, "parameters": map[string]any{"type": "object", "properties": props, "required": required, "additionalProperties": false}}})
+		out = append(out, map[string]any{
+			"type": "function",
+			"function": map[string]any{
+				"name":        n,
+				"description": toolDescriptions[n],
+				"strict":      true,
+				"parameters": map[string]any{
+					"type":                 "object",
+					"properties":           props,
+					"required":             required,
+					"additionalProperties": false,
+				},
+			},
+		})
 	}
 	return out
 }
@@ -71,6 +95,18 @@ func EvidenceHash(v domain.Evidence) string {
 	sum := sha256.Sum256(b)
 	return hex.EncodeToString(sum[:])
 }
+func uniqueSources(refs []domain.SourceRef) []domain.SourceRef {
+	result := make([]domain.SourceRef, 0, len(refs))
+	seen := make(map[domain.SourceRef]bool, len(refs))
+	for _, ref := range refs {
+		if !seen[ref] {
+			result = append(result, ref)
+			seen[ref] = true
+		}
+	}
+	return result
+}
+
 func ExecuteTool(ctx context.Context, s *store.Store, c domain.Case, run domain.Run, name string, a ToolArgs) (domain.Evidence, error) {
 	v := domain.Evidence{ID: domain.ID(), CaseID: c.ID, RunID: run.ID, ShiftID: c.ShiftID, Tool: name, Facts: map[string]string{}, Sources: []domain.SourceRef{}, Completeness: "complete", Notes: []string{}, RetrievedAt: time.Now().UTC()}
 	sh, e := s.Shift(ctx, c.ShiftID)
@@ -86,10 +122,28 @@ func ExecuteTool(ctx context.Context, s *store.Store, c domain.Case, run domain.
 		}
 		v.Domain = "workforce"
 		v.Sources = staff.Sources
-		v.Facts = map[string]string{"scheduled": n(staff.Scheduled), "verified_present": n(staff.Present), "approved_leave": n(staff.Leave), "unverified": n(staff.Unverified), "required_staff": n(sh.Required)}
+		v.Facts = map[string]string{"scheduled": n(staff.Scheduled), "verified_present": n(staff.Present), "approved_leave": n(staff.Leave), "unverified": n(staff.Unverified), "required_staff": n(sh.Required), "confirmed_absent": n(staff.ConfirmedAbsent)}
 		if staff.Unverified > 0 {
 			v.Completeness = "needs_verification"
 			v.Notes = append(v.Notes, "Catatan belum terverifikasi tidak membuktikan mangkir; minta verifikasi supervisor.")
+		}
+		if name == "get_attendance_summary" && c.RuleID == "ATT-001" {
+			streaks, err := s.AbsenceStreaks(ctx, sh, domain.AsOf)
+			if err != nil {
+				return v, err
+			}
+			v.Facts["confirmed_absence_workers"] = fmt.Sprint(len(streaks.Employees))
+			v.Facts["required_consecutive_shifts"] = "3"
+			v.Facts["consecutive_shifts"] = "0"
+			if len(streaks.Employees) > 0 {
+				v.Facts["consecutive_shifts"] = "3"
+			} else {
+				v.Completeness = "needs_verification"
+				v.Notes = append(v.Notes, "Rangkaian pemicu kasus tidak lagi didukung sumber terkini; tinjau koreksi data sebelum mengambil keputusan.")
+			}
+			v.Facts["employee_ids"] = store.EmployeeIDs(streaks)
+			v.Sources = append(v.Sources, streaks.Sources...)
+			v.Notes = append(v.Notes, "Rangkaian hanya dari tiga shift kerja terjadwal terakhir dengan sumber lengkap dan konfirmasi supervisor; cuti memutus rangkaian, hari libur tidak dihitung.")
 		}
 	case "get_approved_leave":
 		v.Domain = "workforce"
@@ -124,9 +178,24 @@ func ExecuteTool(ctx context.Context, s *store.Store, c domain.Case, run domain.
 			v.Completeness = "insufficient_evidence"
 			v.Notes = append(v.Notes, "Baseline atau catatan lembur tidak cukup lengkap.")
 		}
+		if c.RuleID == "OT-002" {
+			approval, err := s.OvertimeApprovals(ctx, sh, domain.AsOf)
+			if err != nil {
+				return v, err
+			}
+			v.Facts["unapproved_records"] = n(approval.Unapproved)
+			v.Facts["unapproved_minutes"] = n(approval.Minutes)
+			v.Facts["unverified_overtime_records"] = n(approval.Unverified)
+			v.Facts["unverified_unapproved_records"] = n(approval.PendingApproval)
+			v.Sources = append(v.Sources, approval.Sources...)
+			if approval.Unverified > 0 {
+				v.Completeness = "needs_verification"
+			}
+			v.Notes = append(v.Notes, "Persetujuan efektif memakai kejadian terakhir sampai waktu evaluasi; pembatalan tidak menghapus riwayat.")
+		}
 	case "get_cost_breakdown":
 		v.Domain = "finance"
-		rows, e := s.Pool.Query(ctx, "SELECT id,category,amount_rupiah,complete FROM expenses WHERE shift_id=$1 ORDER BY id", sh.ID)
+		rows, e := s.Pool.Query(ctx, "SELECT id,category,amount_rupiah,complete FROM expenses WHERE shift_id=$1 AND occurred_at<=$2 ORDER BY id", sh.ID, domain.AsOf)
 		if e != nil {
 			return v, e
 		}
@@ -153,6 +222,23 @@ func ExecuteTool(ctx context.Context, s *store.Store, c domain.Case, run domain.
 		v.Facts["currency"] = "IDR"
 		for k, x := range totals {
 			v.Facts[k+"_rupiah"] = n(x)
+		}
+		if c.RuleID == "COST-001" || c.RuleID == "COST-002" {
+			costs, err := s.ExpenseVariance(ctx, sh, domain.AsOf)
+			if err != nil {
+				return v, err
+			}
+			v.Facts["expense_actual_rupiah"] = n(costs.Observed)
+			v.Facts["expense_baseline_rupiah"] = n(costs.Baseline)
+			v.Facts["expense_variance_bps"] = n(costs.Variance)
+			v.Facts["comparable_shifts"] = fmt.Sprint(costs.Comparable)
+			v.Facts["expense_posting_closed"] = strconv.FormatBool(costs.PostingClosed)
+			v.Facts["baseline_basis"] = "median empat shift sebanding, dinormalisasi target terencana; bukan output aktual"
+			v.Sources = append(v.Sources, costs.Sources...)
+			if !costs.Complete {
+				v.Completeness = "insufficient_evidence"
+			}
+			v.Notes = append(v.Notes, "Pengeluaran rendah bukan bukti efisiensi; biaya per unit dan perubahan kondisi harus dianalisis terpisah.")
 		}
 	case "get_production_performance":
 		v.Domain = "production"
@@ -194,7 +280,8 @@ func ExecuteTool(ctx context.Context, s *store.Store, c domain.Case, run domain.
 	default:
 		return v, errors.New("tool tidak diizinkan")
 	}
-	if e = s.ValidateSources(ctx, c.ShiftID, v.Sources); e != nil {
+	v.Sources = uniqueSources(v.Sources)
+	if e = s.ValidateCaseSources(ctx, c, v.Sources); e != nil {
 		return v, e
 	}
 	v.Hash = EvidenceHash(v)

@@ -22,16 +22,17 @@ func (s *Store) Shift(ctx context.Context, id string) (Shift, error) {
 }
 
 type Staffing struct {
-	Scheduled, Present, Leave, Unverified int64
-	Sources                               []domain.SourceRef
+	Scheduled, Present, Leave, Unverified, ConfirmedAbsent int64
+	Sources                                                []domain.SourceRef
 }
 
 func (s *Store) Staffing(ctx context.Context, id string) (Staffing, error) {
 	var out Staffing
 	out.Sources = []domain.SourceRef{}
 	rows, e := s.Pool.Query(ctx, `SELECT a.id,t.id,t.check_in,t.check_out,coalesce(t.verified,false),
- EXISTS(SELECT 1 FROM leave_records l WHERE l.employee_id=a.employee_id AND l.approved AND l.starts_at<=sh.starts_at AND l.ends_at>=sh.ends_at)
- FROM shift_assignments a JOIN shift_instances sh ON sh.id=a.shift_id LEFT JOIN attendance_records t ON t.assignment_id=a.id WHERE a.shift_id=$1 ORDER BY a.id`, id)
+ EXISTS(SELECT 1 FROM leave_records l WHERE l.employee_id=a.employee_id AND l.approved AND l.starts_at<=sh.starts_at AND l.ends_at>=sh.ends_at),
+ coalesce(t.source_complete AND t.absence_confirmed_at>=sh.ends_at AND t.absence_confirmed_at<=$2,false)
+ FROM shift_assignments a JOIN shift_instances sh ON sh.id=a.shift_id LEFT JOIN attendance_records t ON t.assignment_id=a.id WHERE a.shift_id=$1 ORDER BY a.id`, id, domain.AsOf)
 	if e != nil {
 		return out, e
 	}
@@ -40,8 +41,8 @@ func (s *Store) Staffing(ctx context.Context, id string) (Staffing, error) {
 		var aid string
 		var tid *string
 		var in, outTime *time.Time
-		var verified, leave bool
-		if e = rows.Scan(&aid, &tid, &in, &outTime, &verified, &leave); e != nil {
+		var verified, leave, absent bool
+		if e = rows.Scan(&aid, &tid, &in, &outTime, &verified, &leave, &absent); e != nil {
 			return out, e
 		}
 		out.Scheduled++
@@ -51,6 +52,8 @@ func (s *Store) Staffing(ctx context.Context, id string) (Staffing, error) {
 		}
 		if leave {
 			out.Leave++
+		} else if absent {
+			out.ConfirmedAbsent++
 		} else if verified && in != nil && outTime != nil && outTime.After(*in) {
 			out.Present++
 		} else {

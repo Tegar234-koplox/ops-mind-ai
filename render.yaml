@@ -30,3 +30,7 @@ services:
         value: demo
       - key: SEED_IF_EMPTY
         value: "true"
+      - key: ENABLE_P1_RULES
+        value: "true"
+      - key: SEED_P1_DEMO
+        value: "true"
