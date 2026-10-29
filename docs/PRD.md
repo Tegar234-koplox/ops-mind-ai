@@ -14,6 +14,8 @@ Keberhasilan: golden scenario selesai dengan bukti dari workforce, biaya, produk
 P0: OT-001, PROD-001, ATT-002, MAINT-001; delapan tool baca; laporan tervalidasi; login; antrean persisten; review dan audit. P1: ATT-001, OT-002, COST-001, COST-002, diimplementasikan setelah P0 stabil atas instruksi pengguna 28 Oktober 2026, aktivasi eksplisit melalui ENABLE_P1_RULES. Ditunda: ERP, procurement, warehouse, quality control, predictive maintenance, multi-fasilitas, registrasi publik, penulisan otomatis ke sistem bisnis.
 
 ## Batas
+
+P2 yang dipilih pengguna hanya laporan serah terima shift: memilih lini/tanggal/shift selesai, menyusun snapshot fakta operasional beserta kasus dan keputusan review yang sudah tersimpan, membuka versi lama dan mencetak melalui browser. Data belum lengkap tetap ditandai; laporan bukan tanda penerimaan shift atau persetujuan tindakan. Tidak menambah pengiriman otomatis, penjadwalan job, tool model, atau domain manufaktur lain.
 Satu pembangun, 3–5 jam/hari, sekitar 36 jam. Anggaran tunai US$0 dan kredit Meta US$150 menurut pengguna; anggaran aplikasi US$20 (15 pengembangan, 5 demo), maksimum US$0,25 per investigasi. Kredit bukan alasan menambah cakupan. Hosting gratis tidak memberikan jaminan ketersediaan produksi.
 
 Target end-to-end: 31 Oktober. Pengiriman internal: 4 November 18.00 WIB. Tenggat event: 5 November 09.00 WIB. Repositori publik dan video 180 detik adalah persyaratan proyek; format, bahasa submission, lisensi dan persyaratan final harus diperiksa di portal peserta. Sumber: https://dev.meta.ai/events/global-hackathon.

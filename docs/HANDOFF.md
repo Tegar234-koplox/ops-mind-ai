@@ -1,10 +1,11 @@
 # Handoff OpsMind AI
 
-Diperbarui 28 Oktober 2026 (WIB). Status: P1 selesai dan terverifikasi daring; perbaikan hover dashboard sedang dikerjakan sesuai urutan pengguna.
+Status terbaru: P0/P1 dan hover selesai serta terverifikasi daring; pengguna memilih P2 laporan serah terima shift. Baca .local/LAST_PROGRESS.md untuk checkpoint verifikasi sesudah commit.
 
 ## Keputusan tetap
 - Monolit modular Go/PostgreSQL/React/Meta Model API; P0 OT-001, PROD-001, ATT-002, MAINT-001 dan golden tetap dipertahankan. P1 hanya empat aturan yang diminta.
 - Pengguna mengaktifkan ATT-001, OT-002, COST-001, COST-002 pada 28 Oktober dan meminta clean code. ERP, microservices, multi-fasilitas, prediksi dan registrasi publik tetap ditunda.
+- P2 diizinkan hanya laporan serah terima shift. Pakai snapshot fakta Go dan hasil investigasi/review tersimpan; tanpa model/tool tambahan, scheduler, notifikasi, penerima atau tindakan bisnis otomatis. Domain Phase 2 lain tetap ditunda.
 - Demo/video ditangani pengguna sendiri. Jangan melanjutkan persiapan video. Petunjuk/kredensial lokal ada di .local/DEMO_ACCESS.md (privat, di-ignore, jangan cetak atau upload).
 - Seluruh data manufaktur sintetis. Empat attendance pending bukan bukti mangkir; tiga cuti disetujui dikecualikan. Korelasi bukan kausalitas. Review tidak menulis data bisnis.
 - Tunai US$0. Batas aplikasi US$20 (15 development/5 demo), US$0,25/run. Tidak membeli layanan atau domain.
@@ -17,7 +18,7 @@ Diperbarui 28 Oktober 2026 (WIB). Status: P1 selesai dan terverifikasi daring; p
 - Neon project wild-dew-57741693 (opsmind-ai), PostgreSQL 18, region aws-ap-southeast-1, compute min/max 0,25 CU, auto-suspend default paket Free. Organisasi diverifikasi plan free sebelum pembuatan.
 - Endpoint ep-broad-mouse-b35rsj8q; database opsmind. Gunakan koneksi langsung Neon dengan sslmode=verify-full karena worker menggunakan session advisory lock.
 - Dua proyek Neon lain milik pengguna tidak diubah. Layanan Key Value yang pernah dibuat pengguna bukan dependensi aplikasi dan tidak diubah.
-- Commit yang terpasang kini 77227f80c8ac6af674abbb8d99defe9e6e66c088 (hasil squash PR #2 pada main). P1 aktif; rincian verifikasi di bagian P1 selesai.
+- Commit yang terpasang pada checkpoint awal P2: 9686ceaffe6c446ed9c9ff48cb18fceef167d09e (hasil squash PR #3 pada main). P1 dan hover aktif; P2 belum dipasang sampai verifikasi rilisnya dicatat.
 - Build pertama dep-dbh00h6k1f9s7399lv8g berhasil. Karena URL final baru diketahui setelah create, APP_ORIGIN diperbarui lalu image yang sama diterapkan ulang (dep-dbh01hu1egvs73e9pj60) agar login memakai origin final.
 - Restart terkontrol dep-dbh03n6gekts73904ne0 mempertahankan laporan/bukti/review/biaya/seed. Deployment P0 dep-dbh096ei0phs73ad1280 sebelumnya live pada c3fd411; digantikan deployment P1 di bawah.
 - Deployment final dipicu API setelah CI main lulus. autoDeployTrigger=checksPass terkonfigurasi, tetapi pemicuan otomatis belum terverifikasi; jangan mengklaim hook CI-to-Render otomatis berhasil.
@@ -64,8 +65,8 @@ Diperbarui 28 Oktober 2026 (WIB). Status: P1 selesai dan terverifikasi daring; p
 
 ## Urutan lanjut yang dibatasi plan
 1. P1 selesai melalui PR #2, merge, deployment, empat deteksi dan dua investigasi Meta nyata. Jangan mengulang pekerjaan ini atau mengubah golden.
-2. Selesaikan hover pada branch codex/hover-interactions: validasi browser → commit/push → PR → CI → keputusan committer khusus PR baru → merge/deploy/verifikasi.
-3. Jangan menerapkan hover ke deployment sebelum pemeriksaan dan alur Git selesai.
+2. Hover selesai melalui PR #3 dan deployment dep-dbh28pflk1mc739obg5g pada 9686cea; CI main 40727125790 lulus. Jangan mengulang pekerjaan hover.
+3. Selesaikan P2 pada codex/shift-handover: tes snapshot/API/browser → commit/push/PR/CI → keputusan committer khusus PR baru → squash merge → CI main/deploy gratis/verifikasi tanpa panggilan model tambahan.
 4. Demo/video ditangani pengguna sendiri. Agent tidak melanjutkan pekerjaan video atau submission tanpa instruksi berikutnya.
 5. Target internal menurut plan tetap 4 November 2026 18.00 WIB; event 5 November 09.00 WIB. Jangan memperluas ke modul lain.
 
@@ -86,8 +87,19 @@ Diperbarui 28 Oktober 2026 (WIB). Status: P1 selesai dan terverifikasi daring; p
 - Browser daring lulus: delapan aturan/kasus, laporan Meta, dialog bukti, golden +38%, tanpa pageerror. Screenshot .local/p1-cloud-report.png diperiksa visual. Run golden awal tetap succeeded dengan tujuh evidence; investigasi tambahan pengguna tetap dipertahankan.
 - Saldo demo daring teramati US$0,080398 (termasuk investigasi tambahan pengguna); dua tes P1 menambah US$0,043399. Catatan lokal sebelumnya US$0,059159; gabungan teramati US$0,139557, tetap satu anggaran aplikasi US$20.
 
-## Hover sedang dikerjakan
+## Hover selesai
 - Reproduksi browser daring membuktikan nav samping, tab, dan tautan bukti tidak memiliki perubahan hover. Tombol utama, kasus nonaktif dan kartu bukti sudah merespons; kasus terpilih tidak merespons. Bukti lokal .local/hover-before.json/png (ignore).
-- Perbaikan terbatas pada feedback interaktif, status navigasi terpilih yang sebelumnya hardcoded, dan pengujian browser. Kartu statistik tetap informasional. Build/format frontend dan tes browser hover lulus (12,8 detik); screenshot desktop/ponsel diperiksa. Branch sudah dipush dan PR #3 https://github.com/Tegar234-koplox/ops-mind-ai/pull/3 dibuat; pada checkpoint ini CI berjalan dan belum merge/deploy. Hasil akhir dicatat di .local/LAST_PROGRESS.md.
+- PR #3 https://github.com/Tegar234-koplox/ops-mind-ai/pull/3 sudah squash merge ke 9686cea, CI lulus dan Render Free live. Browser daring membuktikan hover pada tujuh target; laporan golden dan P1 tetap utuh, saldo demo US$0,080398 tidak berubah. Kartu statistik tetap informasional.
 - Tes mencakup hover normal/terpilih, dialog bukti dari tautan, aria-current, fokus keyboard, reduced motion, dan navigasi tab pada viewport ponsel. Nav samping memang disembunyikan pada layout ponsel; tidak menambah menu baru.
 - Contributor repo setelah merge P1 tetap hanya Tegar234-koplox (diverifikasi API). Pengguna mengizinkan committer teknis GitHub khusus PR #3 melalui jawaban terpisah setelah PR siap ditinjau; izin tidak mencakup PR berikutnya. Merge hanya setelah seluruh checks relevan lulus.
+
+## P2 serah terima sedang dikerjakan
+- Branch codex/shift-handover dari main 9686cea. Scope dipilih eksplisit pengguna setelah ditanyakan arti P2; bukan seluruh daftar Phase 2 brief.
+- Migrasi 000005 menambah shift_handovers immutable, hash dan indeks riwayat. Store reader internal mendukung transaksi repeatable-read/read-only untuk fakta serta status review yang konsisten. Pembentukan laporan Go tidak mengubah fakta/model/aturan P0/P1.
+- API autentikasi: GET /shifts, GET/POST /handovers, GET /handovers/{id}. POST memakai Origin dan Idempotency-Key; shift belum selesai 409, scope fasilitas lain 404. Snapshot menyimpan empat domain, gangguan mesin, kasus, latest run, rekomendasi/review, source refs dan hash evidence.
+- UI terpisah di web/src/handover, akses desktop/ponsel, filter lini/tanggal/shift selesai, riwayat snapshot, telusuri kasus dan dialog cetak/PDF browser. Tidak ada pengiriman atau penerimaan shift otomatis.
+- Data_as_of adalah cutoff operasional fixture; keputusan review dibaca saat created_at laporan. Pending/cuti/closure belum lengkap tidak boleh disamakan dengan pelanggaran atau total final.
+- Unit builder, suite Go/PostgreSQL lengkap dan vet lulus lokal. Browser keseluruhan: empat lulus, satu tes Meta opsional di-skip. Screenshot desktop/ponsel/print diperiksa; label produksi menggunakan bahasa Indonesia. Tes terarah terakhir lulus, termasuk perpindahan shift saat request berlangsung dan tombol yang tetap menunggu sampai penyusunan selesai. Database portabel sempat berhenti saat pergantian sesi dan dinyalakan lagi tanpa reset.
+- .gitattributes mengunci LF untuk konsistensi formatter Windows/Linux; tidak mengubah konfigurasi Git global. P2 sudah dipush melalui PR #4 https://github.com/Tegar234-koplox/ops-mind-ai/pull/4 . Pada checkpoint ini belum merge/deploy; hasil akhir dicatat di .local/LAST_PROGRESS.md.
+- CI awal 97c62c8: Go/race/PostgreSQL/format/build dan container lulus, browser menemukan race reset mutasi pada pergantian shift. Reset status dihapus; error dibatasi shift terkait dan cache riwayat diperbarui dari hasil baru agar versi lama tidak tampil sementara. Tes browser terarah lulus 28,5 detik, termasuk refresh riwayat yang ditunda. CI head final wajib diperiksa sesudah perbaikan ini.
+- Pengguna mengizinkan committer teknis GitHub khusus squash merge PR #4 setelah CI lulus. Author/contributor tetap akun pengguna, tanpa Co-authored-by. Pengecualian ini tidak mencakup PR berikutnya.

@@ -19,3 +19,8 @@ Kenaikan biaya bukan fraud; absensi belum jelas bukan misconduct; tidak menyimpu
 
 ## Sumber tambahan P1
 Konfirmasi absen menyimpan waktu dan actor; keduanya harus ada dan catatan sumber lengkap. Pembatalan persetujuan lembur disimpan sebagai kejadian baru tanpa menghapus approval sebelumnya. Closure ledger expense tidak otomatis dibuat oleh migrasi; posting nol harus dikonfirmasi dengan closure yang sah. Fixture sintetis P1 dijalankan eksplisit dan tidak mereset golden atau investigasi tersimpan.
+# Serah terima shift P2
+
+Laporan dipilih per lini dan shift aktual yang telah selesai pada cutoff evaluasi. Tanggal shift malam berasal dari awal shift. Ringkasan harus mempertahankan hadir/cuti/absen terkonfirmasi/pending secara terpisah; empat pending golden tetap pending. Interval downtime yang sudah berakhir tidak membuktikan mesin telah diperbaiki. Posting expense yang belum ditutup atau sumber belum lengkap tidak boleh diperlakukan sebagai total biaya final.
+
+Laporan meneruskan fakta, kasus, sintesis investigasi tersimpan yang diberi label model, rekomendasi dan keputusan review pada waktu penyusunan. Ini bukan bukti bahwa shift telah diterima atau tindakan telah dijalankan. Tidak menyimpulkan pelanggaran pekerja, fraud, efisiensi atau kausalitas. Belum ada kasus tersimpan bukan bukti tidak ada anomali. Penerima/penugasan dan pengiriman otomatis di luar cakupan P2 ini.

@@ -63,6 +63,7 @@ export const toolLabel: Record<string, string> = {
   get_evidence_record: 'Validasi sumber bukti',
 }
 export const factLabel: Record<string, string> = {
+  downtime_event_count: 'Interval gangguan tercatat',
   confirmed_absent: 'Absen terkonfirmasi',
   confirmed_absence_workers: 'Pekerja dengan rangkaian absen',
   consecutive_shifts: 'Shift berturut-turut',

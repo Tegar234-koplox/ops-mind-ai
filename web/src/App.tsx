@@ -7,6 +7,7 @@ import {
   Check,
   ChevronRight,
   CircleDot,
+  ClipboardList,
   Factory,
   Fingerprint,
   Layers3,
@@ -31,6 +32,7 @@ import {
   toolLabel,
 } from './api'
 import { Badge, Busy, Empty, ErrorMessage, EvidenceCard, EvidenceDialog } from './components'
+import { HandoverWorkspace } from './handover/Workspace'
 import type { Case, CaseDetail, Evidence, Overview, Run, RunDetail } from './types'
 type Session = { username: string; model_mode: string }
 export default function App() {
@@ -169,11 +171,16 @@ function Login({ onSuccess }: { onSuccess: () => void }) {
 }
 function Workspace({ session }: { session: Session }) {
   const client = useQueryClient(),
+    [view, setView] = useState<'investigations' | 'handover'>('investigations'),
     [selected, setSelected] = useState(''),
     [search, setSearch] = useState(''),
     [tab, setTab] = useState('live'),
     [openEvidence, setOpenEvidence] = useState<Evidence | null>(null),
     [error, setError] = useState('')
+  function openTab(next: string) {
+    setView('investigations')
+    setTab(next)
+  }
   const overview = useQuery({
     queryKey: ['overview'],
     queryFn: () => api<Overview>('/overview'),
@@ -262,31 +269,44 @@ function Workspace({ session }: { session: Session }) {
         .includes(search.toLowerCase()),
     )
   return (
-    <div className="app-shell">
+    <div className={'app-shell' + (view === 'handover' ? ' is-handover' : '')}>
       <aside className="sidebar">
         <Brand />
         <div className="workspace-label">WORKSPACE</div>
         <nav aria-label="Navigasi utama">
           <button
-            className={'nav-item' + (tab === 'live' ? ' selected' : '')}
-            aria-current={tab === 'live' ? 'page' : undefined}
-            onClick={() => setTab('live')}
+            className={
+              'nav-item' + (view === 'investigations' && tab === 'live' ? ' selected' : '')
+            }
+            aria-current={view === 'investigations' && tab === 'live' ? 'page' : undefined}
+            onClick={() => openTab('live')}
           >
             <LayoutList size={18} /> Investigasi <span>{data?.cases ?? 0}</span>
           </button>
           <button
-            className={'nav-item' + (tab === 'report' ? ' selected' : '')}
-            aria-current={tab === 'report' ? 'page' : undefined}
-            onClick={() => setTab('report')}
+            className={
+              'nav-item' + (view === 'investigations' && tab === 'report' ? ' selected' : '')
+            }
+            aria-current={view === 'investigations' && tab === 'report' ? 'page' : undefined}
+            onClick={() => openTab('report')}
           >
             <Layers3 size={18} /> Laporan bukti
           </button>
           <button
-            className={'nav-item' + (tab === 'review' ? ' selected' : '')}
-            aria-current={tab === 'review' ? 'page' : undefined}
-            onClick={() => setTab('review')}
+            className={
+              'nav-item' + (view === 'investigations' && tab === 'review' ? ' selected' : '')
+            }
+            aria-current={view === 'investigations' && tab === 'review' ? 'page' : undefined}
+            onClick={() => openTab('review')}
           >
             <ShieldCheck size={18} /> Review manusia <i className="nav-dot" />
+          </button>
+          <button
+            className={'nav-item' + (view === 'handover' ? ' selected' : '')}
+            aria-current={view === 'handover' ? 'page' : undefined}
+            onClick={() => setView('handover')}
+          >
+            <ClipboardList size={18} /> Serah terima shift
           </button>
         </nav>
         <div className="sidebar-bottom">
@@ -308,7 +328,7 @@ function Workspace({ session }: { session: Session }) {
         <header className="topbar">
           <div className="breadcrumb">
             Operasional <ChevronRight size={13} />
-            <strong>Investigasi</strong>
+            <strong>{view === 'handover' ? 'Serah terima shift' : 'Investigasi'}</strong>
           </div>
           <div className="operator">
             <span className="top-status">
@@ -322,214 +342,247 @@ function Workspace({ session }: { session: Session }) {
           </div>
         </header>
         <main className="main-content">
-          <div className="page-heading">
-            <div>
-              <span className="eyebrow">OPERATIONS INTELLIGENCE</span>
-              <h1>
-                Ruang investigasi<span>.</span>
-              </h1>
-              <p>Hubungkan anomali, telusuri bukti, ambil keputusan.</p>
-            </div>
-            <button className="primary" onClick={() => detect.mutate()} disabled={detect.isPending}>
-              <Activity size={17} />
-              {detect.isPending ? 'Mendeteksi…' : 'Jalankan deteksi'}
+          <div className="workspace-switch handover-screen-only" aria-label="Pilih ruang kerja">
+            <button
+              className="secondary"
+              aria-pressed={view === 'investigations'}
+              onClick={() => setView('investigations')}
+            >
+              Ruang investigasi
+            </button>
+            <button
+              className="secondary"
+              aria-pressed={view === 'handover'}
+              onClick={() => setView('handover')}
+            >
+              Serah terima shift
             </button>
           </div>
-          <div className={'mode-banner ' + (data?.model_mode === 'mock' ? 'mock' : 'meta')}>
-            <Sparkles size={17} />
-            <strong>{data?.model_mode === 'mock' ? 'SIMULASI MODEL' : 'META AI'}</strong>
-            <span>
-              {data?.model_mode === 'mock'
-                ? 'Respons model tiruan untuk pengujian. Data, tool, dan penyimpanan tetap nyata.'
-                : (data?.model_name ?? 'Menghubungkan model') +
-                  ' · Agent memilih bukti melalui tool baca terbatas.'}
-            </span>
-          </div>
-          {error ? <ErrorMessage message={error} /> : null}
-          {overview.error ? <ErrorMessage message={overview.error.message} /> : null}
-          <section className="stat-grid" aria-label="Status workspace">
-            <Stat
-              label="Kasus terdeteksi"
-              value={data?.cases}
-              icon={<LayoutList />}
-              note={(data?.active_rule_count ?? 4) + ' aturan aktif'}
+          {view === 'handover' ? (
+            <HandoverWorkspace
+              onOpenCase={(id) => {
+                setSelected(id)
+                openTab('live')
+              }}
             />
-            <Stat
-              label="Investigasi aktif"
-              value={data?.active_runs}
-              icon={<Activity />}
-              note="Proses dengan checkpoint"
-            />
-            <Stat
-              label="Menunggu review"
-              value={data?.pending_reviews}
-              icon={<Bell />}
-              note="Keputusan ada pada manusia"
-            />
-            <Stat
-              label="Terpakai / direservasi"
-              value={data ? 'US$' + ((data.budget_micros.total ?? 0) / 1e6).toFixed(3) : undefined}
-              icon={<CircleDot />}
-              note={'Batas aplikasi US$' + (data?.credit_limit_micros ?? 20000000) / 1e6}
-            />
-          </section>
-          <section className="investigation-workspace">
-            <div className="inbox">
-              <div className="panel-heading">
-                <h2>
-                  Inbox kasus <span>{items.length}</span>
-                </h2>
-                <span className="subtle-tag">SEMUA LINI</span>
+          ) : (
+            <>
+              <div className="page-heading">
+                <div>
+                  <span className="eyebrow">OPERATIONS INTELLIGENCE</span>
+                  <h1>
+                    Ruang investigasi<span>.</span>
+                  </h1>
+                  <p>Hubungkan anomali, telusuri bukti, ambil keputusan.</p>
+                </div>
+                <button
+                  className="primary"
+                  onClick={() => detect.mutate()}
+                  disabled={detect.isPending}
+                >
+                  <Activity size={17} />
+                  {detect.isPending ? 'Mendeteksi…' : 'Jalankan deteksi'}
+                </button>
               </div>
-              <label className="search">
-                <Search size={16} />
-                <input
-                  aria-label="Cari kasus"
-                  placeholder="Cari kasus atau departemen…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+              <div className={'mode-banner ' + (data?.model_mode === 'mock' ? 'mock' : 'meta')}>
+                <Sparkles size={17} />
+                <strong>{data?.model_mode === 'mock' ? 'SIMULASI MODEL' : 'META AI'}</strong>
+                <span>
+                  {data?.model_mode === 'mock'
+                    ? 'Respons model tiruan untuk pengujian. Data, tool, dan penyimpanan tetap nyata.'
+                    : (data?.model_name ?? 'Menghubungkan model') +
+                      ' · Agent memilih bukti melalui tool baca terbatas.'}
+                </span>
+              </div>
+              {error ? <ErrorMessage message={error} /> : null}
+              {overview.error ? <ErrorMessage message={overview.error.message} /> : null}
+              <section className="stat-grid" aria-label="Status workspace">
+                <Stat
+                  label="Kasus terdeteksi"
+                  value={data?.cases}
+                  icon={<LayoutList />}
+                  note={(data?.active_rule_count ?? 4) + ' aturan aktif'}
                 />
-              </label>
-              <div className="case-list">
-                {cases.isPending ? (
-                  <Busy />
-                ) : cases.error ? (
-                  <ErrorMessage message={cases.error.message} />
-                ) : visible.length ? (
-                  visible.map((c) => (
-                    <button
-                      key={c.id}
-                      className={'case-item ' + (c.id === caseID ? 'active' : '')}
-                      onClick={() => {
-                        setSelected(c.id)
-                        setTab('live')
-                      }}
-                    >
-                      <div className="case-item-top">
-                        <span className={'case-rule ' + c.severity}>{c.rule_id}</span>
-                        <span className="case-department">{c.department}</span>
-                      </div>
-                      <h3>{ruleLabel[c.rule_id] ?? c.rule_id}</h3>
-                      <p>Assembly Line {c.entity_id} · Shift operasional</p>
-                      <div className="case-item-bottom">
-                        <Badge value={c.severity} />
-                        <span>{stateLabel[c.status] ?? c.status}</span>
-                      </div>
-                    </button>
-                  ))
-                ) : (
-                  <Empty title={search ? 'Kasus tidak ditemukan' : 'Belum ada kasus'}>
-                    <p>
-                      {search
-                        ? 'Gunakan kata kunci lain.'
-                        : 'Jalankan deteksi untuk memeriksa lini produksi.'}
-                    </p>
-                  </Empty>
-                )}
-              </div>
-              <div className="inbox-foot">
-                <ShieldCheck size={13} /> Seluruh catatan adalah data sintetis
-              </div>
-            </div>
-            <div className="case-panel">
-              {!caseID ? (
-                <Empty title="Mulai dari satu pertanyaan">
-                  <p>
-                    Mengapa biaya lembur meningkat saat output menurun?
-                    <br />
-                    Jalankan deteksi untuk menghubungkan buktinya.
-                  </p>
-                  <button
-                    className="secondary"
-                    disabled={detect.isPending}
-                    onClick={() => detect.mutate()}
-                  >
-                    Deteksi anomali <ArrowRight size={15} />
-                  </button>
-                </Empty>
-              ) : detail.isPending ? (
-                <Busy text="Memuat konteks kasus…" />
-              ) : detail.error ? (
-                <ErrorMessage message={detail.error.message} />
-              ) : detail.data ? (
-                <>
-                  <div className="case-header">
-                    <div>
-                      <span className="eyebrow">
-                        ASSEMBLY LINE {detail.data.case.entity_id} <span> / </span>{' '}
-                        {detail.data.case.rule_id}
-                      </span>
-                      <h2>{ruleLabel[detail.data.case.rule_id] ?? detail.data.case.rule_id}</h2>
-                      <p>{detail.data.case.explanation}</p>
-                    </div>
-                    <Badge value={detail.data.case.data_quality} />
+                <Stat
+                  label="Investigasi aktif"
+                  value={data?.active_runs}
+                  icon={<Activity />}
+                  note="Proses dengan checkpoint"
+                />
+                <Stat
+                  label="Menunggu review"
+                  value={data?.pending_reviews}
+                  icon={<Bell />}
+                  note="Keputusan ada pada manusia"
+                />
+                <Stat
+                  label="Terpakai / direservasi"
+                  value={
+                    data ? 'US$' + ((data.budget_micros.total ?? 0) / 1e6).toFixed(3) : undefined
+                  }
+                  icon={<CircleDot />}
+                  note={'Batas aplikasi US$' + (data?.credit_limit_micros ?? 20000000) / 1e6}
+                />
+              </section>
+              <section className="investigation-workspace">
+                <div className="inbox">
+                  <div className="panel-heading">
+                    <h2>
+                      Inbox kasus <span>{items.length}</span>
+                    </h2>
+                    <span className="subtle-tag">SEMUA LINI</span>
                   </div>
-                  <div className="case-numbers">
-                    {Object.entries(detail.data.case.observed).map(([k, v]) => (
-                      <div key={k}>
-                        <span>{factLabel[k] ?? k}</span>
-                        <strong>{factValue(k, v)}</strong>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="tabs" role="tablist" aria-label="Tahap investigasi">
-                    {[
-                      ['live', 'Investigasi langsung'],
-                      ['report', 'Laporan bukti'],
-                      ['review', 'Review manusia'],
-                    ].map(([id, label], i) => (
-                      <button
-                        role="tab"
-                        id={'tab-' + id}
-                        aria-controls="investigation-panel"
-                        aria-selected={tab === id}
-                        key={id}
-                        className={tab === id ? 'selected' : ''}
-                        onClick={() => setTab(id)}
-                      >
-                        <span>0{i + 1}</span>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                  <div
-                    className="tab-content"
-                    role="tabpanel"
-                    id="investigation-panel"
-                    aria-labelledby={'tab-' + tab}
-                  >
-                    {investigation.error ? (
-                      <ErrorMessage message={investigation.error.message} />
-                    ) : null}
-                    {tab === 'live' ? (
-                      <Live
-                        detail={investigation.data}
-                        latest={detail.data.latest_run}
-                        onStart={() => start.mutate('')}
-                        starting={start.isPending}
-                        onCancel={() => cancel.mutate()}
-                        cancelling={cancel.isPending}
-                        onReport={() => setTab('report')}
-                      />
-                    ) : tab === 'report' ? (
-                      <ReportPanel
-                        detail={investigation.data}
-                        onOpen={setOpenEvidence}
-                        onReview={() => setTab('review')}
-                      />
+                  <label className="search">
+                    <Search size={16} />
+                    <input
+                      aria-label="Cari kasus"
+                      placeholder="Cari kasus atau departemen…"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </label>
+                  <div className="case-list">
+                    {cases.isPending ? (
+                      <Busy />
+                    ) : cases.error ? (
+                      <ErrorMessage message={cases.error.message} />
+                    ) : visible.length ? (
+                      visible.map((c) => (
+                        <button
+                          key={c.id}
+                          className={'case-item ' + (c.id === caseID ? 'active' : '')}
+                          onClick={() => {
+                            setSelected(c.id)
+                            setTab('live')
+                          }}
+                        >
+                          <div className="case-item-top">
+                            <span className={'case-rule ' + c.severity}>{c.rule_id}</span>
+                            <span className="case-department">{c.department}</span>
+                          </div>
+                          <h3>{ruleLabel[c.rule_id] ?? c.rule_id}</h3>
+                          <p>Assembly Line {c.entity_id} · Shift operasional</p>
+                          <div className="case-item-bottom">
+                            <Badge value={c.severity} />
+                            <span>{stateLabel[c.status] ?? c.status}</span>
+                          </div>
+                        </button>
+                      ))
                     ) : (
-                      <ReviewPanel
-                        detail={detail.data}
-                        onChanged={invalidate}
-                        onFollowup={(instruction) => start.mutate(instruction)}
-                        busy={start.isPending}
-                      />
+                      <Empty title={search ? 'Kasus tidak ditemukan' : 'Belum ada kasus'}>
+                        <p>
+                          {search
+                            ? 'Gunakan kata kunci lain.'
+                            : 'Jalankan deteksi untuk memeriksa lini produksi.'}
+                        </p>
+                      </Empty>
                     )}
                   </div>
-                </>
-              ) : null}
-            </div>
-          </section>
+                  <div className="inbox-foot">
+                    <ShieldCheck size={13} /> Seluruh catatan adalah data sintetis
+                  </div>
+                </div>
+                <div className="case-panel">
+                  {!caseID ? (
+                    <Empty title="Mulai dari satu pertanyaan">
+                      <p>
+                        Mengapa biaya lembur meningkat saat output menurun?
+                        <br />
+                        Jalankan deteksi untuk menghubungkan buktinya.
+                      </p>
+                      <button
+                        className="secondary"
+                        disabled={detect.isPending}
+                        onClick={() => detect.mutate()}
+                      >
+                        Deteksi anomali <ArrowRight size={15} />
+                      </button>
+                    </Empty>
+                  ) : detail.isPending ? (
+                    <Busy text="Memuat konteks kasus…" />
+                  ) : detail.error ? (
+                    <ErrorMessage message={detail.error.message} />
+                  ) : detail.data ? (
+                    <>
+                      <div className="case-header">
+                        <div>
+                          <span className="eyebrow">
+                            ASSEMBLY LINE {detail.data.case.entity_id} <span> / </span>{' '}
+                            {detail.data.case.rule_id}
+                          </span>
+                          <h2>{ruleLabel[detail.data.case.rule_id] ?? detail.data.case.rule_id}</h2>
+                          <p>{detail.data.case.explanation}</p>
+                        </div>
+                        <Badge value={detail.data.case.data_quality} />
+                      </div>
+                      <div className="case-numbers">
+                        {Object.entries(detail.data.case.observed).map(([k, v]) => (
+                          <div key={k}>
+                            <span>{factLabel[k] ?? k}</span>
+                            <strong>{factValue(k, v)}</strong>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="tabs" role="tablist" aria-label="Tahap investigasi">
+                        {[
+                          ['live', 'Investigasi langsung'],
+                          ['report', 'Laporan bukti'],
+                          ['review', 'Review manusia'],
+                        ].map(([id, label], i) => (
+                          <button
+                            role="tab"
+                            id={'tab-' + id}
+                            aria-controls="investigation-panel"
+                            aria-selected={tab === id}
+                            key={id}
+                            className={tab === id ? 'selected' : ''}
+                            onClick={() => setTab(id)}
+                          >
+                            <span>0{i + 1}</span>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                      <div
+                        className="tab-content"
+                        role="tabpanel"
+                        id="investigation-panel"
+                        aria-labelledby={'tab-' + tab}
+                      >
+                        {investigation.error ? (
+                          <ErrorMessage message={investigation.error.message} />
+                        ) : null}
+                        {tab === 'live' ? (
+                          <Live
+                            detail={investigation.data}
+                            latest={detail.data.latest_run}
+                            onStart={() => start.mutate('')}
+                            starting={start.isPending}
+                            onCancel={() => cancel.mutate()}
+                            cancelling={cancel.isPending}
+                            onReport={() => setTab('report')}
+                          />
+                        ) : tab === 'report' ? (
+                          <ReportPanel
+                            detail={investigation.data}
+                            onOpen={setOpenEvidence}
+                            onReview={() => setTab('review')}
+                          />
+                        ) : (
+                          <ReviewPanel
+                            detail={detail.data}
+                            onChanged={invalidate}
+                            onFollowup={(instruction) => start.mutate(instruction)}
+                            busy={start.isPending}
+                          />
+                        )}
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              </section>
+            </>
+          )}
           <footer className="main-footer">
             <span>
               <ShieldCheck size={13} /> Fakta dari data. Hipotesis dari AI. Keputusan dari manusia.

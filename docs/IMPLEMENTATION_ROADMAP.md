@@ -22,3 +22,9 @@ Risiko prioritas: runtime/toolchain belum siap; key/kredit tidak tersedia di env
 
 ## Perubahan urutan atas instruksi pemilik, 28 Oktober
 P0 dan golden daring sudah stabil; pengguna menangani demo/video sendiri dan meminta pengerjaan ATT-001, OT-002, COST-001, COST-002 terlebih dahulu. P1 tetap dalam monolit dan delapan tool baca. Tidak memperluas ke ERP atau modul lanjutan. Syarat penyelesaian: migrasi upgrade aman, fixture terpisah, tes batas/sumber tidak lengkap, browser, CI, PR dan deployment terverifikasi.
+
+## P2 dipilih pengguna: serah terima shift
+
+P0/P1 dan hover sudah selesai; pengguna memilih laporan serah terima shift dari Phase 2 brief. Cakupan hanya laporan atas permintaan untuk shift selesai, snapshot immutable, fakta empat domain dari Go, kasus/sintesis/review yang sudah tersimpan, riwayat versi dan cetak browser. Tidak menambah detektor, panggilan Meta, scheduler, notifikasi, penerima atau tindakan bisnis otomatis.
+
+Urutan: kontrak snapshot/API → migrasi 000005 dan pembacaan konsisten → builder Go → workspace terpisah → tes ketepatan/data kurang/versi/idempotensi/browser/cetak → commit/push/PR/CI → squash merge sesuai aturan identitas → deploy gratis dan verifikasi tanpa tambahan biaya model. Domain Phase 2 lainnya tetap ditunda. Kriteria selesai mencakup golden 31+3+4, +38%, -17%, 110 menit; snapshot lama tidak berubah setelah review baru.

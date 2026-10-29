@@ -43,3 +43,21 @@ case_evidence menyimpan snapshot kanonik, hash SHA-256, daftar SourceRef bertipe
 
 ## Migrasi P1 000004
 `attendance_records` mendapat absence_confirmed_at/by yang harus berpasangan, tanpa punch, verified=false dan source_complete=true. `expense_closures` menyimpan konfirmasi penutupan ledger per shift. `overtime_approval_events` menyimpan approval/revocation append-only; pasangan overtime_id/occurred_at unik untuk mencegah urutan ambigu. Indeks approval_record_time mendukung pembacaan event terakhir. Data lama tidak diberi konfirmasi atau closure buatan oleh migrasi. Seed P1 terpisah memakai audit marker versi dan transaksi untuk idempotensi. Down migration menghapus histori P1; jangan rollback data demo/operasional tanpa menyimpan histori yang diperlukan.
+# P2: snapshot laporan shift
+
+Migrasi `000005_shift_handovers` menambahkan `shift_handovers(id text PK, shift_id FK, created_at timestamptz, created_by text, snapshot jsonb, snapshot_hash text)`. Indeks `(shift_id, created_at DESC, id DESC)` mendukung riwayat. Hash wajib 64 karakter hex; actor tidak boleh kosong. Trigger menolak UPDATE/DELETE, sehingga perubahan fakta atau review memerlukan laporan baru. Insert laporan dan audit `handover_created` berlangsung atomik. Down migration menghapus laporan; tidak digunakan untuk rollback otomatis.
+
+```mermaid
+erDiagram
+    shift_instances ||--o{ shift_handovers : has_snapshots
+    shift_handovers {
+        text id PK
+        text shift_id FK
+        timestamptz created_at
+        text created_by
+        jsonb snapshot
+        text snapshot_hash
+    }
+```
+
+Pembacaan kontribusi laporan memakai satu transaksi repeatable-read/read-only melalui reader internal Store; logika fakta P0/P1 tetap dipakai. Snapshot menyertakan ID kasus/run/rekomendasi/review, hash evidence tersimpan dan source refs yang dipilih query scoped. Laporan tidak menjadwalkan pekerja atau menulis ulang data kehadiran, biaya, produksi, maintenance, atau keputusan review. `next_shift` hanya shift lini sama yang mulai tepat pada akhir shift asal; jika tidak ada, null. Operasional sintetis menggunakan cutoff fixture, sedangkan review dibaca pada waktu snapshot.
