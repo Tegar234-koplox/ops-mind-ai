@@ -40,8 +40,26 @@ test('shift handover preserves versions, facts and printable review context', as
   await expect(report).toContainText('Output aktual')
   await expect(report).toContainText('SIMULASI · Sintesis investigasi tersimpan')
   const firstID = await page.getByLabel('Versi laporan tersimpan').inputValue()
+  let releaseHistory = () => {}
+  const historyBlocked = new Promise<void>((resolve) => {
+    releaseHistory = resolve
+  })
+  await page.route(
+    (url) => url.pathname === '/api/v1/handovers' && url.searchParams.has('shift_id'),
+    async (route) => {
+      await historyBlocked
+      await route.continue()
+    },
+  )
   await page.getByRole('button', { name: 'Susun laporan baru' }).click()
-  await expect(page.getByLabel('Versi laporan tersimpan')).not.toHaveValue(firstID)
+  try {
+    await expect(page.getByLabel('Versi laporan tersimpan')).not.toHaveValue(firstID)
+    const newID = await page.getByLabel('Versi laporan tersimpan').inputValue()
+    await expect(report).toContainText(newID)
+  } finally {
+    releaseHistory()
+  }
+  await page.unrouteAll({ behavior: 'wait' })
   await page.getByLabel('Versi laporan tersimpan').selectOption(firstID)
   await expect(report).toContainText(firstID)
   await page.reload()
@@ -83,7 +101,7 @@ test('shift handover preserves versions, facts and printable review context', as
   await savedResponse
   await expect(page.getByRole('button', { name: 'Susun laporan baru' })).toBeEnabled()
   await expect(report).toHaveCount(0)
-  await page.unroute('**/api/v1/handovers')
+  await page.unrouteAll({ behavior: 'wait' })
   await page.getByLabel('Lini produksi', { exact: true }).selectOption('A')
   await page.getByLabel('Shift selesai').selectOption('A-20261026-S1')
   await page.getByLabel('Versi laporan tersimpan').selectOption(firstID)

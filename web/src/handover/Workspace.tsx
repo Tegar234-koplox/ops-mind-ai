@@ -58,8 +58,23 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
   })
   const create = useMutation({
     mutationFn: (id: string) => api<Handover>('/handovers', { shift_id: id }),
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
+      await client.cancelQueries({ queryKey: ['handovers', result.shift_id] })
       client.setQueryData(['handover', result.id], result)
+      client.setQueryData<{ items: HandoverSummary[]; total: number }>(
+        ['handovers', result.shift_id, 0],
+        (previous) =>
+          previous
+            ? {
+                items: [result, ...previous.items.filter((item) => item.id !== result.id)].slice(
+                  0,
+                  pageSize,
+                ),
+                total:
+                  previous.total + (previous.items.some((item) => item.id === result.id) ? 0 : 1),
+              }
+            : previous,
+      )
       if (result.shift_id === shiftID) {
         setSelectedReport({ shift: result.shift_id, id: result.id })
         setHistoryOffset(0)
@@ -72,7 +87,6 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
     setShiftOffset(0)
     setHistoryOffset(0)
     setSelectedReport({ shift: '', id: '' })
-    if (!create.isPending) create.reset()
   }
 
   return (
@@ -129,7 +143,6 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
                 setSelectedShift(event.target.value)
                 setHistoryOffset(0)
                 setSelectedReport({ shift: '', id: '' })
-                if (!create.isPending) create.reset()
               }}
             >
               {!shifts.length ? (
@@ -193,7 +206,7 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
         </p>
       </div>
       {catalogue.error ? <ErrorMessage message={catalogue.error.message} /> : null}
-      {create.error ? (
+      {create.error && create.variables === shiftID ? (
         <ErrorMessage
           message={'Laporan ' + (create.variables ?? '') + ': ' + create.error.message}
         />
