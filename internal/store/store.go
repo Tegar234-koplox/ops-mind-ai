@@ -22,7 +22,10 @@ var migrations embed.FS
 var ErrConflict = errors.New("konflik state atau data usang")
 var ErrNotFound = errors.New("record tidak ditemukan")
 
-type Store struct{ Pool *pgxpool.Pool }
+type Store struct {
+	Pool   *pgxpool.Pool
+	reader queryReader
+}
 
 func Open(ctx context.Context, dsn string) (*Store, error) {
 	c, e := pgxpool.ParseConfig(dsn)
@@ -40,7 +43,7 @@ func Open(ctx context.Context, dsn string) (*Store, error) {
 		p.Close()
 		return nil, e
 	}
-	return &Store{p}, nil
+	return &Store{Pool: p}, nil
 }
 func Migrate(dsn string) error {
 	db, e := sql.Open("pgx", dsn)
@@ -101,15 +104,15 @@ func scanCase(row pgx.Row) (domain.Case, error) {
 	return c, nil
 }
 func (s *Store) Case(ctx context.Context, id string) (domain.Case, error) {
-	return scanCase(s.Pool.QueryRow(ctx, "SELECT "+caseCols+" FROM anomaly_cases WHERE id=$1", id))
+	return scanCase(s.readDB().QueryRow(ctx, "SELECT "+caseCols+" FROM anomaly_cases WHERE id=$1", id))
 }
 func (s *Store) Cases(ctx context.Context, limit, offset int, status, severity string) ([]domain.Case, int, error) {
 	var total int
-	e := s.Pool.QueryRow(ctx, "SELECT count(*) FROM anomaly_cases WHERE ($1='' OR status=$1) AND ($2='' OR severity=$2)", status, severity).Scan(&total)
+	e := s.readDB().QueryRow(ctx, "SELECT count(*) FROM anomaly_cases WHERE ($1='' OR status=$1) AND ($2='' OR severity=$2)", status, severity).Scan(&total)
 	if e != nil {
 		return nil, 0, e
 	}
-	rows, e := s.Pool.Query(ctx, "SELECT "+caseCols+" FROM anomaly_cases WHERE ($3='' OR status=$3) AND ($4='' OR severity=$4) ORDER BY CASE severity WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,detected_at DESC,id LIMIT $1 OFFSET $2", limit, offset, status, severity)
+	rows, e := s.readDB().Query(ctx, "SELECT "+caseCols+" FROM anomaly_cases WHERE ($3='' OR status=$3) AND ($4='' OR severity=$4) ORDER BY CASE severity WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,detected_at DESC,id LIMIT $1 OFFSET $2", limit, offset, status, severity)
 	if e != nil {
 		return nil, 0, e
 	}
@@ -140,13 +143,13 @@ func scanRun(row pgx.Row) (domain.Run, error) {
 	return r, e
 }
 func (s *Store) Run(ctx context.Context, id string) (domain.Run, error) {
-	return scanRun(s.Pool.QueryRow(ctx, "SELECT "+runCols+" FROM investigation_runs r WHERE id=$1", id))
+	return scanRun(s.readDB().QueryRow(ctx, "SELECT "+runCols+" FROM investigation_runs r WHERE id=$1", id))
 }
 func (s *Store) LatestRun(ctx context.Context, id string) (domain.Run, error) {
-	return scanRun(s.Pool.QueryRow(ctx, "SELECT "+runCols+" FROM investigation_runs r WHERE case_id=$1 ORDER BY created_at DESC,id DESC LIMIT 1", id))
+	return scanRun(s.readDB().QueryRow(ctx, "SELECT "+runCols+" FROM investigation_runs r WHERE case_id=$1 ORDER BY created_at DESC,id DESC LIMIT 1", id))
 }
 func (s *Store) Events(ctx context.Context, id string, after int64) ([]domain.Event, error) {
-	rows, e := s.Pool.Query(ctx, "SELECT id,run_id,kind,message,created_at FROM investigation_events WHERE run_id=$1 AND id>$2 ORDER BY id LIMIT 500", id, after)
+	rows, e := s.readDB().Query(ctx, "SELECT id,run_id,kind,message,created_at FROM investigation_events WHERE run_id=$1 AND id>$2 ORDER BY id LIMIT 500", id, after)
 	if e != nil {
 		return nil, e
 	}
@@ -168,7 +171,7 @@ func (s *Store) Event(ctx context.Context, id, kind, message string) error {
 func (s *Store) Evidence(ctx context.Context, caseID, id string) (domain.Evidence, error) {
 	var v domain.Evidence
 	var f, src, n []byte
-	e := s.Pool.QueryRow(ctx, "SELECT id,case_id,run_id,shift_id,tool,domain,facts,sources,completeness,notes,hash,retrieved_at FROM case_evidence WHERE case_id=$1 AND id=$2", caseID, id).Scan(&v.ID, &v.CaseID, &v.RunID, &v.ShiftID, &v.Tool, &v.Domain, &f, &src, &v.Completeness, &n, &v.Hash, &v.RetrievedAt)
+	e := s.readDB().QueryRow(ctx, "SELECT id,case_id,run_id,shift_id,tool,domain,facts,sources,completeness,notes,hash,retrieved_at FROM case_evidence WHERE case_id=$1 AND id=$2", caseID, id).Scan(&v.ID, &v.CaseID, &v.RunID, &v.ShiftID, &v.Tool, &v.Domain, &f, &src, &v.Completeness, &n, &v.Hash, &v.RetrievedAt)
 	if e != nil {
 		return v, normalize(e)
 	}
@@ -182,7 +185,7 @@ func (s *Store) Evidence(ctx context.Context, caseID, id string) (domain.Evidenc
 	return v, e
 }
 func (s *Store) EvidenceList(ctx context.Context, runID string) ([]domain.Evidence, error) {
-	rows, e := s.Pool.Query(ctx, "SELECT case_id,id FROM case_evidence WHERE run_id=$1 ORDER BY retrieved_at,id", runID)
+	rows, e := s.readDB().Query(ctx, "SELECT case_id,id FROM case_evidence WHERE run_id=$1 ORDER BY retrieved_at,id", runID)
 	if e != nil {
 		return nil, e
 	}
@@ -212,7 +215,7 @@ func (s *Store) EvidenceList(ctx context.Context, runID string) ([]domain.Eviden
 	return out, nil
 }
 func (s *Store) Recommendations(ctx context.Context, caseID string) ([]domain.Recommendation, error) {
-	rows, e := s.Pool.Query(ctx, "SELECT x.id,x.run_id,x.case_id,x.title,x.rationale,x.evidence_ids,x.department,coalesce(v.decision,''),coalesce(v.reason,''),coalesce(v.reviewer,'') FROM recommendations x LEFT JOIN review_actions v ON v.recommendation_id=x.id WHERE x.case_id=$1 ORDER BY x.id", caseID)
+	rows, e := s.readDB().Query(ctx, "SELECT x.id,x.run_id,x.case_id,x.title,x.rationale,x.evidence_ids,x.department,coalesce(v.decision,''),coalesce(v.reason,''),coalesce(v.reviewer,'') FROM recommendations x LEFT JOIN review_actions v ON v.recommendation_id=x.id WHERE x.case_id=$1 ORDER BY x.id", caseID)
 	if e != nil {
 		return nil, e
 	}
@@ -232,7 +235,7 @@ func (s *Store) Recommendations(ctx context.Context, caseID string) ([]domain.Re
 	return out, rows.Err()
 }
 func (s *Store) Audit(ctx context.Context, caseID string) ([]map[string]any, error) {
-	rows, e := s.Pool.Query(ctx, "SELECT id,actor,action,details,created_at FROM audit_events WHERE case_id=$1 ORDER BY id", caseID)
+	rows, e := s.readDB().Query(ctx, "SELECT id,actor,action,details,created_at FROM audit_events WHERE case_id=$1 ORDER BY id", caseID)
 	if e != nil {
 		return nil, e
 	}
@@ -256,7 +259,7 @@ func (s *Store) Audit(ctx context.Context, caseID string) ([]map[string]any, err
 }
 func (s *Store) Budget(ctx context.Context) (map[string]int64, error) {
 	v := map[string]int64{"total": 0, "development": 0, "demo": 0}
-	rows, e := s.Pool.Query(ctx, "SELECT phase,coalesce(sum(coalesce(actual_micros,reserved_micros)),0) FROM budget_reservations GROUP BY phase")
+	rows, e := s.readDB().Query(ctx, "SELECT phase,coalesce(sum(coalesce(actual_micros,reserved_micros)),0) FROM budget_reservations GROUP BY phase")
 	if e != nil {
 		return nil, e
 	}

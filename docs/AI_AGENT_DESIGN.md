@@ -21,3 +21,6 @@ Total aplikasi US$20: development 15 dan demo 5, maksimum run 0,25. Reservoir bi
 
 ## Bukti aturan P1
 Delapan nama tool tetap sama. get_attendance_summary menyertakan rangkaian absen terkonfirmasi untuk ATT-001; get_overtime_variance menyertakan status persetujuan efektif untuk OT-002; get_cost_breakdown menyertakan baseline/variance/closure untuk COST-001/COST-002. Referensi historis hanya diizinkan jika dipilih query deterministik untuk kasus tersebut; kasus lain tetap pada scope awal. Snapshot dideduplikasi, di-hash, dan tidak memberi akses SQL/model tulis.
+# P2 serah terima tidak menambah agent
+
+Builder laporan shift memakai fakta deterministik Go dan membaca sintesis/rekomendasi dari investigasi yang sudah tersimpan. Mode mock pada sintesis tetap berlabel SIMULASI. Tidak ada panggilan Meta, reservasi kredit, tool AI baru, perubahan loop, atau penulisan data bisnis melalui laporan. Delapan tool dan semua batas anggaran tetap sama. Laporan bukan investigasi baru; bila perlu bukti tambahan, operator membuka kasus dan memulai alur investigasi yang sudah tersedia.

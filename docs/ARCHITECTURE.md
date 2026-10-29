@@ -22,6 +22,8 @@ Go 1.27.3 + Chi menyediakan HTTP, context cancellation, satu binary dan slog. pg
 domain: tipe, rekonsiliasi, uang dan deteksi; store: SQL dan transaksi; seed: simulasi; agent: adapter model, tool, evidence validation, budget dan worker; httpapi: autentikasi, idempotensi, REST/SSE; web: empat tampilan. Satu proses Go menyajikan frontend dan API pada origin yang sama. Model tidak memegang koneksi database dan tidak memiliki SQL atau tool tulis.
 
 ## Ketahanan
+
+P2 serah terima menambah modul `handover` dalam binary yang sama. Store membaca fakta dan review melalui transaksi PostgreSQL repeatable-read/read-only; builder Go membuat laporan tanpa model. Snapshot disimpan immutable bersama audit dalam transaksi tersendiri. Tidak ada scheduler baru: penyusunan otomatis atas permintaan operator. UI memakai cache per shift dan ID laporan; cetak/PDF melalui dialog browser.
 investigation_runs adalah antrean. Satu worker memegang advisory lock PostgreSQL pada koneksi khusus; transaksi SKIP LOCKED memilih pekerjaan queued atau lease kedaluwarsa. Heartbeat memperbarui lease 60 detik setiap 15 detik. Transcript dan hasil tool disimpan setelah setiap langkah. Pembatalan eksplisit menghentikan context; putus browser hanya memutus SSE. Crash sebelum hasil panggilan eksternal tersimpan dapat menyebabkan panggilan ulang dan biaya ganda; anggaran tetap direservasi dan retry dibatasi. Tidak mengklaim exactly-once untuk API model.
 
 ## Keamanan

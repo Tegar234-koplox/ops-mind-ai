@@ -16,7 +16,7 @@ type AbsenceStreaks struct {
 // Only the last three scheduled working shifts qualify. Leave or an unknown record breaks the streak.
 func (s *Store) AbsenceStreaks(ctx context.Context, sh Shift, asOf time.Time) (AbsenceStreaks, error) {
 	out := AbsenceStreaks{Employees: []string{}, Sources: []domain.SourceRef{}}
-	rows, e := s.Pool.Query(ctx, `WITH history AS (
+	rows, e := s.readDB().Query(ctx, `WITH history AS (
  SELECT a.employee_id,a.id,sh.id AS shift_id,t.id AS attendance_id,sh.ends_at,
  coalesce(t.source_complete,false) AS complete,t.absence_confirmed_at,
  EXISTS(SELECT 1 FROM leave_records l WHERE l.employee_id=a.employee_id AND l.approved AND l.starts_at<=sh.starts_at AND l.ends_at>=sh.ends_at) AS on_leave,
@@ -82,7 +82,7 @@ type ApprovalSummary struct {
 
 func (s *Store) OvertimeApprovals(ctx context.Context, sh Shift, asOf time.Time) (ApprovalSummary, error) {
 	out := ApprovalSummary{Sources: []domain.SourceRef{}}
-	rows, e := s.Pool.Query(ctx, `SELECT o.id,o.minutes,o.complete,coalesce(v.status='approved',o.approved),v.id
+	rows, e := s.readDB().Query(ctx, `SELECT o.id,o.minutes,o.complete,coalesce(v.status='approved',o.approved),v.id
  FROM overtime_records o JOIN shift_assignments a ON a.id=o.assignment_id
  LEFT JOIN LATERAL(SELECT id,status FROM overtime_approval_events WHERE overtime_id=o.id AND occurred_at<=$2 ORDER BY occurred_at DESC,id DESC LIMIT 1)v ON true
  WHERE a.shift_id=$1 AND o.minutes>0 ORDER BY o.id`, sh.ID, asOf)
@@ -127,7 +127,7 @@ type ExpenseVariance struct {
 func (s *Store) ExpenseVariance(ctx context.Context, sh Shift, asOf time.Time) (ExpenseVariance, error) {
 	out := ExpenseVariance{Sources: []domain.SourceRef{{Type: "shift_instances", ID: sh.ID}}}
 	var closed bool
-	e := s.Pool.QueryRow(ctx, `SELECT coalesce(sum(x.amount_rupiah) FILTER(WHERE x.occurred_at<=$2),0),coalesce(bool_and(x.complete AND x.occurred_at<=$2),true),EXISTS(SELECT 1 FROM expense_closures WHERE shift_id=$1 AND closed_at<=$2 AND closed_at>=$3) FROM expenses x WHERE x.shift_id=$1`, sh.ID, asOf, sh.End).Scan(&out.Observed, &out.Complete, &closed)
+	e := s.readDB().QueryRow(ctx, `SELECT coalesce(sum(x.amount_rupiah) FILTER(WHERE x.occurred_at<=$2),0),coalesce(bool_and(x.complete AND x.occurred_at<=$2),true),EXISTS(SELECT 1 FROM expense_closures WHERE shift_id=$1 AND closed_at<=$2 AND closed_at>=$3) FROM expenses x WHERE x.shift_id=$1`, sh.ID, asOf, sh.End).Scan(&out.Observed, &out.Complete, &closed)
 	if e != nil {
 		return out, e
 	}
@@ -136,7 +136,7 @@ func (s *Store) ExpenseVariance(ctx context.Context, sh Shift, asOf time.Time) (
 	if closed {
 		out.Sources = append(out.Sources, domain.SourceRef{Type: "expense_closures", ID: sh.ID})
 	}
-	rows, e := s.Pool.Query(ctx, `SELECT sh.id,p.planned,coalesce(sum(x.amount_rupiah),0) FROM shift_instances sh
+	rows, e := s.readDB().Query(ctx, `SELECT sh.id,p.planned,coalesce(sum(x.amount_rupiah),0) FROM shift_instances sh
  JOIN production_runs p ON p.shift_id=sh.id JOIN calendar_days d ON d.day=sh.operational_date
  JOIN expense_closures c ON c.shift_id=sh.id LEFT JOIN expenses x ON x.shift_id=sh.id
  WHERE sh.line_id=$1 AND sh.code=$2 AND sh.product=$3 AND sh.ends_at<=$4 AND sh.complete AND p.complete AND p.planned>0 AND d.is_working AND c.closed_at<=$5 AND c.closed_at>=sh.ends_at
@@ -165,7 +165,7 @@ func (s *Store) ExpenseVariance(ctx context.Context, sh Shift, asOf time.Time) (
 		return out, e
 	}
 	out.Comparable = len(costs)
-	refs, e := s.Pool.Query(ctx, "SELECT id FROM expenses WHERE shift_id=ANY($1) AND occurred_at<=$2 ORDER BY id", ids, asOf)
+	refs, e := s.readDB().Query(ctx, "SELECT id FROM expenses WHERE shift_id=ANY($1) AND occurred_at<=$2 ORDER BY id", ids, asOf)
 	if e != nil {
 		return out, e
 	}

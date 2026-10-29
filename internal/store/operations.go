@@ -17,7 +17,7 @@ type Shift struct {
 
 func (s *Store) Shift(ctx context.Context, id string) (Shift, error) {
 	var v Shift
-	e := s.Pool.QueryRow(ctx, "SELECT s.id,s.line_id,s.code,s.product,s.starts_at,s.ends_at,s.required_staff,p.planned,p.actual,s.complete AND p.complete,c.is_working FROM shift_instances s JOIN production_runs p ON p.shift_id=s.id JOIN calendar_days c ON c.day=s.operational_date WHERE s.id=$1", id).Scan(&v.ID, &v.LineID, &v.Code, &v.Product, &v.Start, &v.End, &v.Required, &v.Planned, &v.Actual, &v.Complete, &v.Working)
+	e := s.readDB().QueryRow(ctx, "SELECT s.id,s.line_id,s.code,s.product,s.starts_at,s.ends_at,s.required_staff,p.planned,p.actual,s.complete AND p.complete,c.is_working FROM shift_instances s JOIN production_runs p ON p.shift_id=s.id JOIN calendar_days c ON c.day=s.operational_date WHERE s.id=$1", id).Scan(&v.ID, &v.LineID, &v.Code, &v.Product, &v.Start, &v.End, &v.Required, &v.Planned, &v.Actual, &v.Complete, &v.Working)
 	return v, normalize(e)
 }
 
@@ -27,12 +27,16 @@ type Staffing struct {
 }
 
 func (s *Store) Staffing(ctx context.Context, id string) (Staffing, error) {
+	return s.staffingAt(ctx, id, domain.AsOf)
+}
+
+func (s *Store) staffingAt(ctx context.Context, id string, asOf time.Time) (Staffing, error) {
 	var out Staffing
 	out.Sources = []domain.SourceRef{}
-	rows, e := s.Pool.Query(ctx, `SELECT a.id,t.id,t.check_in,t.check_out,coalesce(t.verified,false),
+	rows, e := s.readDB().Query(ctx, `SELECT a.id,t.id,t.check_in,t.check_out,coalesce(t.verified,false),
  EXISTS(SELECT 1 FROM leave_records l WHERE l.employee_id=a.employee_id AND l.approved AND l.starts_at<=sh.starts_at AND l.ends_at>=sh.ends_at),
  coalesce(t.source_complete AND t.absence_confirmed_at>=sh.ends_at AND t.absence_confirmed_at<=$2,false)
- FROM shift_assignments a JOIN shift_instances sh ON sh.id=a.shift_id LEFT JOIN attendance_records t ON t.assignment_id=a.id WHERE a.shift_id=$1 ORDER BY a.id`, id, domain.AsOf)
+ FROM shift_assignments a JOIN shift_instances sh ON sh.id=a.shift_id LEFT JOIN attendance_records t ON t.assignment_id=a.id WHERE a.shift_id=$1 ORDER BY a.id`, id, asOf)
 	if e != nil {
 		return out, e
 	}
@@ -73,12 +77,12 @@ type Overtime struct {
 func (s *Store) Overtime(ctx context.Context, sh Shift) (Overtime, error) {
 	v := Overtime{Sources: []domain.SourceRef{{Type: "shift_instances", ID: sh.ID}}, Complete: true}
 	var missing bool
-	e := s.Pool.QueryRow(ctx, "SELECT coalesce(sum(o.cost_rupiah),0),coalesce(bool_or(NOT o.complete),false),count(o.id) FROM shift_assignments a LEFT JOIN overtime_records o ON o.assignment_id=a.id WHERE a.shift_id=$1", sh.ID).Scan(&v.Observed, &missing, &v.Comparable)
+	e := s.readDB().QueryRow(ctx, "SELECT coalesce(sum(o.cost_rupiah),0),coalesce(bool_or(NOT o.complete),false),count(o.id) FROM shift_assignments a LEFT JOIN overtime_records o ON o.assignment_id=a.id WHERE a.shift_id=$1", sh.ID).Scan(&v.Observed, &missing, &v.Comparable)
 	if e != nil {
 		return v, e
 	}
 	v.Complete = !missing && v.Comparable > 0
-	rows, e := s.Pool.Query(ctx, `SELECT s.id,p.planned,sum(o.cost_rupiah) FROM shift_instances s JOIN calendar_days c ON c.day=s.operational_date JOIN production_runs p ON p.shift_id=s.id JOIN shift_assignments a ON a.shift_id=s.id JOIN overtime_records o ON o.assignment_id=a.id
+	rows, e := s.readDB().Query(ctx, `SELECT s.id,p.planned,sum(o.cost_rupiah) FROM shift_instances s JOIN calendar_days c ON c.day=s.operational_date JOIN production_runs p ON p.shift_id=s.id JOIN shift_assignments a ON a.shift_id=s.id JOIN overtime_records o ON o.assignment_id=a.id
  WHERE s.line_id=$1 AND s.code=$2 AND s.product=$3 AND s.ends_at<=$4 AND s.complete AND p.complete AND c.is_working AND p.planned>0
  AND s.ends_at-s.starts_at=$5::interval
  AND (extract(isodow FROM s.operational_date)=6)=$6
@@ -114,7 +118,7 @@ func (s *Store) Overtime(ctx context.Context, sh Shift) (Overtime, error) {
 	return v, nil
 }
 func (s *Store) Downtime(ctx context.Context, sh Shift) (int64, []domain.SourceRef, error) {
-	rows, e := s.Pool.Query(ctx, "SELECT d.id,d.starts_at,d.ends_at FROM downtime_events d JOIN machines m ON m.id=d.machine_id WHERE d.shift_id=$1 AND m.line_id=$2 ORDER BY d.starts_at", sh.ID, sh.LineID)
+	rows, e := s.readDB().Query(ctx, "SELECT d.id,d.starts_at,d.ends_at FROM downtime_events d JOIN machines m ON m.id=d.machine_id WHERE d.shift_id=$1 AND m.line_id=$2 ORDER BY d.starts_at", sh.ID, sh.LineID)
 	if e != nil {
 		return 0, nil, e
 	}
@@ -149,7 +153,7 @@ func (s *Store) ValidateSources(ctx context.Context, shiftID string, src []domai
 			return fmt.Errorf("source type tidak diizinkan")
 		}
 		var found bool
-		if e := s.Pool.QueryRow(ctx, q, r.ID, shiftID).Scan(&found); e != nil {
+		if e := s.readDB().QueryRow(ctx, q, r.ID, shiftID).Scan(&found); e != nil {
 			return e
 		}
 		if !found {

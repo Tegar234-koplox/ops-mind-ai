@@ -51,7 +51,13 @@ P1 ditambahkan atas instruksi pemilik setelah P0 stabil. Aktifkan `ENABLE_P1_RUL
 
 Gunakan `gofmt` untuk Go dan `npm run format`/`npm run format:check` di web untuk format TypeScript. Aturan P1 dipisahkan dari alur deteksi utama; migrasi, query, seed dan UI tetap pada monolit yang sama.
 
-## Pengujian
+## Laporan serah terima shift (P2)
+
+Buka **Serah terima shift**, pilih lini/tanggal/shift selesai lalu **Susun laporan baru**. Laporan berisi fakta empat domain dari Go, catatan yang perlu diverifikasi, gangguan mesin, kasus dan hasil investigasi/review yang sudah tersimpan. Setiap versi immutable; perubahan review tidak mengubah laporan lama. Gunakan pilihan versi untuk membuka arsip dan **Cetak / Simpan PDF** untuk dialog cetak browser. Pada ponsel, gunakan tombol pemilih ruang kerja di atas halaman.
+
+Penyusunan tidak menambah panggilan Meta atau mengubah data operasional. Waktu evaluasi operasional tetap mengikuti fixture sintetis; status review diambil saat laporan dibuat. Snapshot bukan tanda penerimaan shift atau persetujuan tindakan. Referensi sumber dan hash membantu penelusuran, bukan jaminan bahwa semua narasi benar. Fitur memakai migrasi 000005; jangan menjalankan down migration pada database yang laporan-laporannya perlu dipertahankan.
+
+## Pengujian aplikasi
 
 ```powershell
 . .\\scripts\\load-env.ps1

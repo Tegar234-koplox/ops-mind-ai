@@ -44,11 +44,13 @@ func TestP1RulesAndEvidence(t *testing.T) {
 		t.Fatal(e)
 	}
 	// Upgrade a populated v3 dataset without inventing confirmations or closing invoices.
-	down, e := os.ReadFile(filepath.Join("..", "store", "migrations", "000004_p1_sources.down.sql"))
-	if e != nil {
-		t.Fatal(e)
+	for _, file := range []string{"000005_shift_handovers.down.sql", "000004_p1_sources.down.sql"} {
+		down, err := os.ReadFile(filepath.Join("..", "store", "migrations", file))
+		if err != nil {
+			t.Fatal(err)
+		}
+		exec(string(down))
 	}
-	exec(string(down))
 	exec("UPDATE schema_migrations SET version=3")
 	s.Pool.Reset()
 	if _, e = seed.Run(ctx, s); e != nil {

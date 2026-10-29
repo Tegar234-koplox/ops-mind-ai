@@ -19,3 +19,7 @@ Lulus MVP: angka fixture tepat; 4 aturan; semua tool scoped; laporan tervalidasi
 
 ## Pengujian P1
 Tes upgrade v3 berisi data → v4 memastikan tidak ada closure/konfirmasi buatan. Fixture idempotent, pengecualian cuti/libur, konfirmasi future/pending, revocation append-only/future, threshold biaya tepat +/-20%, baseline kurang/nol, invoice belum lengkap dan scope historis diuji lewat PostgreSQL. P1 agent memakai mock eksplisit di CI. Browser p1.spec.ts memeriksa empat aturan, bukti rangkaian dan golden +38% yang tetap utuh. CI juga memeriksa format TypeScript. Meta nyata tetap terpisah.
+
+## Pengujian P2 serah terima
+
+Builder: uang tetap string integer, target nol tidak menghasilkan persentase, baseline kurang dan closure belum ada tetap perlu verifikasi. Hash berubah bila fakta berubah dan stabil setelah round-trip JSON. PostgreSQL/API: migrasi upgrade, empat fakta golden, shift malam, shift belum selesai, scope fasilitas, keputusan review saat snapshot, immutability, audit, auth/origin, idempotency replay/conflict, pagination dan tidak bertambahnya run/reservasi model. Browser: pilih lini/tanggal/shift, susun laporan, buka versi lama sesudah reload, telusuri kasus, cetak, dan akses viewport ponsel. CI memakai mock eksplisit; verifikasi daring menggunakan hasil Meta yang sudah ada tanpa panggilan baru.
