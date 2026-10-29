@@ -10,7 +10,7 @@ Kode aplikasi OpsMind AI memakai [lisensi MIT](LICENSE). Lisensi tersebut tidak 
 | [github.com/jackc/pgx/v5](https://github.com/jackc/pgx) | v5.11.0 | MIT | [Teks](licenses/pgx.txt) |
 | [github.com/santhosh-tekuri/jsonschema/v6](https://github.com/santhosh-tekuri/jsonschema) | v6.0.3 | Apache-2.0 | [Teks](licenses/jsonschema.txt) |
 | [golang.org/x/crypto](https://go.googlesource.com/crypto) | v0.58.0 | BSD-3-Clause | [Teks](licenses/x-crypto.txt) |
-| [github.com/jackc/pgerrcode](https://github.com/jackc/pgerrcode) | v0.0.0-20220416144525-469b46aa5efa | MIT | [Teks](licenses/pgerrcode.txt) |
+| [github.com/jackc/pgerrcode](https://github.com/jackc/pgerrcode) | v0.0.0-20220416144525-469b46aa5efa | MIT + PostgreSQL (data) | [Teks](licenses/pgerrcode.txt) |
 | [github.com/jackc/pgpassfile](https://github.com/jackc/pgpassfile) | v1.0.0 | MIT | [Teks](licenses/pgpassfile.txt) |
 | [github.com/jackc/pgservicefile](https://github.com/jackc/pgservicefile) | v0.0.0-20240606120523-5a60cdf6a761 | MIT | [Teks](licenses/pgservicefile.txt) |
 | [github.com/jackc/puddle/v2](https://github.com/jackc/puddle) | v2.2.2 | MIT | [Teks](licenses/puddle.txt) |
