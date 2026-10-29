@@ -28,3 +28,9 @@ P0 dan golden daring sudah stabil; pengguna menangani demo/video sendiri dan mem
 P0/P1 dan hover sudah selesai; pengguna memilih laporan serah terima shift dari Phase 2 brief. Cakupan hanya laporan atas permintaan untuk shift selesai, snapshot immutable, fakta empat domain dari Go, kasus/sintesis/review yang sudah tersimpan, riwayat versi dan cetak browser. Tidak menambah detektor, panggilan Meta, scheduler, notifikasi, penerima atau tindakan bisnis otomatis.
 
 Urutan: kontrak snapshot/API → migrasi 000005 dan pembacaan konsisten → builder Go → workspace terpisah → tes ketepatan/data kurang/versi/idempotensi/browser/cetak → commit/push/PR/CI → squash merge sesuai aturan identitas → deploy gratis dan verifikasi tanpa tambahan biaya model. Domain Phase 2 lainnya tetap ditunda. Kriteria selesai mencakup golden 31+3+4, +38%, -17%, 110 menit; snapshot lama tidak berubah setelah review baru.
+
+## Kesiapan rilis, 29 Oktober
+
+P0, P1, hover dan P2 sudah selesai serta diverifikasi daring melalui PR #1–#4. Tahap berikutnya yang diminta pengguna adalah kesiapan rilis: lengkapi pengujian kegagalan provider yang belum langsung diuji, selaraskan README/handoff dengan hasil nyata, simpan atribusi dependensi dan pisahkan persyaratan onboarding dari aturan publik yang berhasil diverifikasi. Tidak ada modul bisnis baru.
+
+Urutan: pengujian terarah lokal tanpa kredit Meta → dokumen bukti dan checklist → commit/push/PR/CI → squash merge sesuai batas izin identitas → verifikasi paket/deployment bila kemasan runtime berubah. Daftar bukti berada di RELEASE_READINESS.md; ketentuan acara dan hal yang masih harus dicek berada di SUBMISSION_REQUIREMENTS.md. Demo, rekaman tiga menit, akses juri dan pengiriman final ditangani pengguna. Jadwal asli tetap menjadi batas; pekerjaan selesai lebih awal tidak membuka scope baru.

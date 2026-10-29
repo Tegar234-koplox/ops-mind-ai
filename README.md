@@ -6,7 +6,7 @@ Platform investigasi operasional manufaktur: deteksi deterministik Go → agent 
 
 [OpsMind AI — demo terlindungi login](https://opsmind-ai-l0px.onrender.com). Kredensial diberikan pemilik secara privat. Seluruh catatan manufaktur sintetis. Layanan Free dapat mengalami cold start.
 
-Verifikasi 28 Oktober 2026: login HTTPS, empat aturan P0, golden Meta nyata (2 putaran, 7 tool, 4 domain), bukti, SSE reconnect, serta review manusia berhasil. Biaya investigasi daring US$0,018857. Video dan submission belum selesai.
+Verifikasi 29 Oktober 2026: P0, empat aturan P1, hover/fokus dan laporan serah terima shift sudah berjalan daring. Golden Meta nyata (dua putaran, tujuh tool, empat domain), bukti, SSE reconnect dan review manusia berhasil; laporan tetap utuh setelah deployment. Penyusunan serah terima tidak menambah panggilan model. Lihat [matriks bukti dan batas klaim](docs/RELEASE_READINESS.md). Video dan submission ditangani pemilik dan belum dinyatakan selesai.
 
 ## Jalankan lokal dengan Docker
 
@@ -39,7 +39,7 @@ Set-Location ..
 .\\scripts\\run.ps1 -Mock
 ```
 
-`-Mock` memilih simulasi secara eksplisit untuk proses itu; berkas `.env` tetap dapat memakai default Meta. Jika konfigurasi lokal dibuat otomatis, password acak tersedia hanya di `.env`. Jangan mengunggah berkas itu. Untuk Meta nyata jalankan tanpa `-Mock` setelah mengisi key. CLI: `serve`, `migrate`, `seed`, `detect`, `hash-password`. CLI membaca environment; script PowerShell memuat `.env` tanpa mengevaluasi isinya sebagai kode.
+`-Mock` memilih simulasi secara eksplisit untuk proses itu; berkas `.env` tetap dapat memakai default Meta. Jika konfigurasi lokal dibuat otomatis, password acak tersedia hanya di `.env`. Jangan mengunggah berkas itu. Untuk Meta nyata jalankan tanpa `-Mock` setelah mengisi key. CLI: `serve`, `migrate`, `seed`, `seed-p1`, `detect`, `hash-password`. CLI membaca environment; script PowerShell memuat `.env` tanpa mengevaluasi isinya sebagai kode.
 
 ## Golden scenario
 
@@ -99,7 +99,7 @@ Sepuluh dokumen perencanaan ada di `docs/`; ERD di DATABASE_DESIGN dan diagram k
 - https://render.com/docs/free
 - https://neon.com/pricing
 
-Karya aplikasi disusun selama periode hackathon. Library pihak ketiga mempertahankan lisensinya; periksa syarat event final pada portal peserta.
+Kode aplikasi memakai [lisensi MIT](LICENSE); library dan ikon mempertahankan [lisensi serta atribusi pihak ketiga](THIRD_PARTY_NOTICES.md). Data manufaktur sintetis. Codex digunakan sebagai alat bantu pengembangan, sedangkan reasoning engine aplikasi menggunakan Meta. Ringkasan onboarding menjadi dasar persyaratan karya baru; pemeriksaan Official Rules/Event Waiver final dan ketentuan assistant tetap diperlukan. Tidak ada klaim persetujuan eksplisit panitia atas Codex. Lihat [status sumber dan checklist submission](docs/SUBMISSION_REQUIREMENTS.md).
 
 ## Titik lanjut
 

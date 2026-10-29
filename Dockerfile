@@ -18,6 +18,8 @@ RUN apk add --no-cache ca-certificates tzdata && addgroup -S opsmind && adduser 
 WORKDIR /app
 COPY --from=backend /opsmind /app/opsmind
 COPY --from=web /src/web/dist /app/web/dist
+COPY LICENSE THIRD_PARTY_NOTICES.md /app/
+COPY licenses /app/licenses
 USER opsmind
 EXPOSE 8080
 ENTRYPOINT ["/app/opsmind"]
