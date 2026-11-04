@@ -429,14 +429,20 @@ func (a *Server) evidence(w http.ResponseWriter, r *http.Request) {
 }
 func (a *Server) detect(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		ShiftID string `json:"shift_id"`
+		ShiftID        string `json:"shift_id"`
+		ReportLanguage string `json:"report_language"`
 	}
 	if decode(w, r, &body) != nil {
 		a.fail(w, r, 400, "validation", "Body JSON tidak valid.")
 		return
 	}
 	engine := detection.Engine{Store: a.Store, Config: a.Config}
-	v, e := engine.Execute(r.Context(), body.ShiftID, domain.AsOf)
+	language, err := domain.NormalizeReportLanguage(body.ReportLanguage)
+	if err != nil {
+		a.fail(w, r, 400, "validation", err.Error())
+		return
+	}
+	v, e := engine.ExecuteInLanguage(r.Context(), body.ShiftID, domain.AsOf, language)
 	if e != nil {
 		a.dbError(w, r, e)
 		return
@@ -447,13 +453,19 @@ func (a *Server) investigate(w http.ResponseWriter, r *http.Request) { a.start(w
 func (a *Server) followup(w http.ResponseWriter, r *http.Request)    { a.start(w, r, true) }
 func (a *Server) start(w http.ResponseWriter, r *http.Request, followup bool) {
 	var body struct {
-		Instruction string `json:"instruction"`
+		Instruction    string `json:"instruction"`
+		ReportLanguage string `json:"report_language"`
 	}
 	if decode(w, r, &body) != nil || len(body.Instruction) > 2000 || (followup && strings.TrimSpace(body.Instruction) == "") {
 		a.fail(w, r, 400, "validation", "Instruksi follow-up wajib diisi, maksimal 2.000 karakter.")
 		return
 	}
-	run, e := a.Store.Enqueue(r.Context(), chi.URLParam(r, "id"), a.Config.Mode, body.Instruction, a.Config.Username)
+	language, err := domain.NormalizeReportLanguage(body.ReportLanguage)
+	if err != nil {
+		a.fail(w, r, 400, "validation", err.Error())
+		return
+	}
+	run, e := a.Store.EnqueueWithLanguage(r.Context(), chi.URLParam(r, "id"), a.Config.Mode, body.Instruction, a.Config.Username, language)
 	if e != nil {
 		a.dbError(w, r, e)
 		return

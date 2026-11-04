@@ -61,3 +61,9 @@ erDiagram
 ```
 
 Pembacaan kontribusi laporan memakai satu transaksi repeatable-read/read-only melalui reader internal Store; logika fakta P0/P1 tetap dipakai. Snapshot menyertakan ID kasus/run/rekomendasi/review, hash evidence tersimpan dan source refs yang dipilih query scoped. Laporan tidak menjadwalkan pekerja atau menulis ulang data kehadiran, biaya, produksi, maintenance, atau keputusan review. `next_shift` hanya shift lini sama yang mulai tepat pada akhir shift asal; jika tidak ada, null. Operasional sintetis menggunakan cutoff fixture, sedangkan review dibaca pada waktu snapshot.
+
+## Migrasi bilingual 000006
+
+investigation_runs.report_language adalah text NOT NULL DEFAULT id dengan CHECK id/en. Migrasi memberi default bahasa historis Indonesia tanpa mengubah report, checkpoint, evidence atau keputusan review. Bahasa dipilih saat enqueue dan dibaca bersama run ketika worker mengambil/melanjutkan pekerjaan. Tidak ada endpoint untuk mengubah bahasa run yang sudah ada.
+
+Kasus dalam snapshot serah terima baru dapat menyertakan report_language. Field bersifat omitempty pada struct sehingga membaca snapshot lama tidak menambah field kosong atau mengubah hash. Tampilan menerjemahkan label/catatan standar; payload sumber dan hash snapshot tetap sama. Down migration hanya menghapus metadata bahasa run dan bukan prosedur rollback otomatis untuk data yang perlu dipertahankan.

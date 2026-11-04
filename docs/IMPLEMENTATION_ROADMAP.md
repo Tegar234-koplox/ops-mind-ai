@@ -34,3 +34,9 @@ Urutan: kontrak snapshot/API → migrasi 000005 dan pembacaan konsisten → buil
 P0, P1, hover dan P2 sudah selesai serta diverifikasi daring melalui PR #1–#4. Tahap berikutnya yang diminta pengguna adalah kesiapan rilis: lengkapi pengujian kegagalan provider yang belum langsung diuji, selaraskan README/handoff dengan hasil nyata, simpan atribusi dependensi dan pisahkan persyaratan onboarding dari aturan publik yang berhasil diverifikasi. Tidak ada modul bisnis baru.
 
 Urutan: pengujian terarah lokal tanpa kredit Meta → dokumen bukti dan checklist → commit/push/PR/CI → squash merge sesuai batas izin identitas → verifikasi paket/deployment bila kemasan runtime berubah. Daftar bukti berada di RELEASE_READINESS.md; ketentuan acara dan hal yang masih harus dicek berada di SUBMISSION_REQUIREMENTS.md. Demo, rekaman tiga menit, akses juri dan pengiriman final ditangani pengguna. Jadwal asli tetap menjadi batas; pekerjaan selesai lebih awal tidak membuka scope baru.
+
+## Bilingual dipilih pengguna, 30 Oktober
+
+Sesudah kesiapan rilis PR #5 selesai, pengguna meminta bilingual Indonesia/Inggris dan memilih tampilan serta laporan AI baru. Cakupan tambahan: katalog UI, pemilih bahasa yang tersimpan di browser, format angka/waktu, bahasa run yang dipersistenkan, prompt Meta sesuai bahasa dan kompatibilitas arsip. Tidak menambah modul operasional atau menerjemahkan ulang data arsip.
+
+Urutan: migrasi 000006/kontrak bahasa → katalog dan pemilih UI → mock ID/EN → tes API/migrasi/browser → commit pengguna/push/PR/CI → squash merge sesuai batas izin identitas → deploy gratis/verifikasi arsip dan satu investigasi Meta nyata dalam bahasa Inggris. Tahap ini tidak memberikan izin committer GitHub secara umum. Demo/video/submission tetap ditangani pengguna.

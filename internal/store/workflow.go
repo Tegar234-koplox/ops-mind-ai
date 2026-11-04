@@ -9,6 +9,14 @@ import (
 )
 
 func (s *Store) InsertCase(ctx context.Context, c domain.Case, mode string) (domain.Case, bool, error) {
+	return s.InsertCaseWithLanguage(ctx, c, mode, "id")
+}
+
+func (s *Store) InsertCaseWithLanguage(ctx context.Context, c domain.Case, mode, language string) (domain.Case, bool, error) {
+	language, err := domain.NormalizeReportLanguage(language)
+	if err != nil {
+		return c, false, err
+	}
 	tx, e := s.Pool.Begin(ctx)
 	if e != nil {
 		return c, false, e
@@ -24,7 +32,7 @@ func (s *Store) InsertCase(ctx context.Context, c domain.Case, mode string) (dom
 			return c, false, e
 		}
 		if c.RuleID == "OT-001" && c.DataQuality == "confirmed" {
-			if _, e = enqueue(ctx, tx, c.ID, mode, "", "detector"); e != nil {
+			if _, e = enqueue(ctx, tx, c.ID, mode, "", "detector", language); e != nil {
 				return c, false, e
 			}
 		}
@@ -39,7 +47,7 @@ func (s *Store) InsertCase(ctx context.Context, c domain.Case, mode string) (dom
 	c, e = s.Case(ctx, c.ID)
 	return c, created, e
 }
-func enqueue(ctx context.Context, tx pgx.Tx, caseID, mode, instruction, actor string) (string, error) {
+func enqueue(ctx context.Context, tx pgx.Tx, caseID, mode, instruction, actor, language string) (string, error) {
 	var locked string
 	if e := tx.QueryRow(ctx, "SELECT id FROM anomaly_cases WHERE id=$1 FOR UPDATE", caseID).Scan(&locked); e != nil {
 		return "", normalize(e)
@@ -52,7 +60,7 @@ func enqueue(ctx context.Context, tx pgx.Tx, caseID, mode, instruction, actor st
 		return "", ErrConflict
 	}
 	id := domain.ID()
-	if _, e := tx.Exec(ctx, "INSERT INTO investigation_runs(id,case_id,status,mode,instruction) VALUES($1,$2,'queued',$3,$4)", id, caseID, mode, instruction); e != nil {
+	if _, e := tx.Exec(ctx, "INSERT INTO investigation_runs(id,case_id,status,mode,instruction,report_language) VALUES($1,$2,'queued',$3,$4,$5)", id, caseID, mode, instruction, language); e != nil {
 		return "", e
 	}
 	for _, q := range []struct {
@@ -61,7 +69,7 @@ func enqueue(ctx context.Context, tx pgx.Tx, caseID, mode, instruction, actor st
 	}{
 		{"UPDATE anomaly_cases SET status='investigating' WHERE id=$1", []any{caseID}},
 		{"INSERT INTO investigation_events(run_id,kind,message) VALUES($1,'queued','Investigasi masuk antrean persisten.')", []any{id}},
-		{"INSERT INTO audit_events(case_id,actor,action,details) VALUES($1,$2,'investigation_queued',$3)", []any{caseID, actor, JSON(map[string]string{"run_id": id, "mode": mode})}},
+		{"INSERT INTO audit_events(case_id,actor,action,details) VALUES($1,$2,'investigation_queued',$3)", []any{caseID, actor, JSON(map[string]string{"run_id": id, "mode": mode, "report_language": language})}},
 	} {
 		if _, e := tx.Exec(ctx, q.sql, q.args...); e != nil {
 			return "", e
@@ -70,12 +78,20 @@ func enqueue(ctx context.Context, tx pgx.Tx, caseID, mode, instruction, actor st
 	return id, nil
 }
 func (s *Store) Enqueue(ctx context.Context, caseID, mode, instruction, actor string) (domain.Run, error) {
+	return s.EnqueueWithLanguage(ctx, caseID, mode, instruction, actor, "id")
+}
+
+func (s *Store) EnqueueWithLanguage(ctx context.Context, caseID, mode, instruction, actor, language string) (domain.Run, error) {
+	language, err := domain.NormalizeReportLanguage(language)
+	if err != nil {
+		return domain.Run{}, err
+	}
 	tx, e := s.Pool.Begin(ctx)
 	if e != nil {
 		return domain.Run{}, e
 	}
 	defer tx.Rollback(ctx)
-	id, e := enqueue(ctx, tx, caseID, mode, instruction, actor)
+	id, e := enqueue(ctx, tx, caseID, mode, instruction, actor, language)
 	if e != nil {
 		return domain.Run{}, e
 	}

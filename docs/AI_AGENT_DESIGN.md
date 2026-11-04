@@ -24,3 +24,9 @@ Delapan nama tool tetap sama. get_attendance_summary menyertakan rangkaian absen
 # P2 serah terima tidak menambah agent
 
 Builder laporan shift memakai fakta deterministik Go dan membaca sintesis/rekomendasi dari investigasi yang sudah tersimpan. Mode mock pada sintesis tetap berlabel SIMULASI. Tidak ada panggilan Meta, reservasi kredit, tool AI baru, perubahan loop, atau penulisan data bisnis melalui laporan. Delapan tool dan semua batas anggaran tetap sama. Laporan bukan investigasi baru; bila perlu bukti tambahan, operator membuka kasus dan memulai alur investigasi yang sudah tersedia.
+
+## Bahasa laporan baru
+
+Setiap run menyimpan report_language (id/en, default id). Worker menetapkan bahasa prosa pada system prompt sebelum checkpoint pertama: ringkasan, hipotesis, bukti yang melemahkan, information gaps dan rekomendasi. Kunci JSON, ID, fakta numerik dan tool tidak diterjemahkan. Bahasa pilihan run mengesampingkan preferensi bahasa dalam instruksi review; instruksi tidak dipercaya sebagai izin mengubah scope/keamanan. Checkpoint menyimpan prompt tersebut agar pilihan tetap sama saat resume.
+
+Pemilihan bahasa tidak menambah tool atau putaran penerjemahan. Mock menyediakan prosa ID/EN eksplisit, tetap berlabel simulasi. Laporan lama disajikan dalam bahasa sumber; tidak ada penerjemahan otomatis arsip atau review. Instruksi bahasa melalui prompt bukan pembuktian otomatis seluruh prosa benar atau bebas campuran bahasa; pemeriksaan Meta nyata terpisah dari CI.

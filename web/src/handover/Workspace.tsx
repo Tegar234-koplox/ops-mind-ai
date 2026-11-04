@@ -1,7 +1,8 @@
+import { useI18n } from '../i18n/context'
 import { useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FileCheck2, Plus, Printer } from 'lucide-react'
-import { api, timestamp } from '../api'
+import { api } from '../api'
 import { Busy, Empty, ErrorMessage } from '../components'
 import { HandoverReport } from './Report'
 import type { Catalogue, Handover, HandoverSummary } from './types'
@@ -10,6 +11,8 @@ import './styles.css'
 const pageSize = 30
 
 export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => void }) {
+  const { t, timestamp } = useI18n()
+
   const client = useQueryClient()
   const [line, setLine] = useState('')
   const [date, setDate] = useState('')
@@ -20,7 +23,7 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
   const catalogue = useQuery({
     queryKey: ['handover-shifts', line, date, shiftOffset],
     placeholderData: keepPreviousData,
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api<Catalogue>(
         '/shifts?' +
           new URLSearchParams({
@@ -29,13 +32,15 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
             limit: String(pageSize),
             offset: String(shiftOffset),
           }),
+        undefined,
+        signal,
       ),
   })
   const shifts = catalogue.isPlaceholderData ? [] : (catalogue.data?.items ?? [])
   const shiftID = shifts.find((shift) => shift.id === selectedShift)?.id ?? shifts[0]?.id ?? ''
   const history = useQuery({
     queryKey: ['handovers', shiftID, historyOffset],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api<{ items: HandoverSummary[]; total: number }>(
         '/handovers?' +
           new URLSearchParams({
@@ -43,6 +48,8 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
             limit: String(pageSize),
             offset: String(historyOffset),
           }),
+        undefined,
+        signal,
       ),
     enabled: !!shiftID,
   })
@@ -53,7 +60,7 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
       : (history.data?.items[0]?.id ?? '')
   const report = useQuery({
     queryKey: ['handover', reportID],
-    queryFn: () => api<Handover>('/handovers/' + reportID),
+    queryFn: ({ signal }) => api<Handover>('/handovers/' + reportID, undefined, signal),
     enabled: !!reportID,
   })
   const create = useMutation({
@@ -73,7 +80,7 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
                 total:
                   previous.total + (previous.items.some((item) => item.id === result.id) ? 0 : 1),
               }
-            : previous,
+            : { items: [result], total: 1 },
       )
       if (result.shift_id === shiftID) {
         setSelectedReport({ shift: result.shift_id, id: result.id })
@@ -93,18 +100,19 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
     <section className="handover-workspace">
       <div className="page-heading handover-screen-only">
         <div>
-          <span className="eyebrow">LAPORAN OPERASIONAL</span>
+          <span className="eyebrow">{t('LAPORAN OPERASIONAL')}</span>
           <h1>
-            Serah terima shift<span>.</span>
+            {t('Serah terima shift')}
+            <span>.</span>
           </h1>
-          <p>Teruskan fakta, catatan yang belum jelas, dan keputusan manusia.</p>
+          <p>{t('Teruskan fakta, catatan yang belum jelas, dan keputusan manusia.')}</p>
         </div>
         <FileCheck2 size={30} className="handover-heading-icon" aria-hidden="true" />
       </div>
       <div className="handover-controls handover-screen-only">
         <div className="handover-filters">
           <div>
-            <label htmlFor="handover-line">Lini produksi</label>
+            <label htmlFor="handover-line">{t('Lini produksi')}</label>
             <select
               id="handover-line"
               value={line}
@@ -113,7 +121,7 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
                 resetSelection()
               }}
             >
-              <option value="">Semua lini</option>
+              <option value="">{t('Semua lini')}</option>
               {catalogue.data?.lines.map((item) => (
                 <option value={item.id} key={item.id}>
                   {item.name}
@@ -122,7 +130,7 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
             </select>
           </div>
           <div>
-            <label htmlFor="handover-date">Tanggal operasional</label>
+            <label htmlFor="handover-date">{t('Tanggal operasional')}</label>
             <input
               id="handover-date"
               type="date"
@@ -134,7 +142,7 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
             />
           </div>
           <div>
-            <label htmlFor="handover-shift">Shift selesai</label>
+            <label htmlFor="handover-shift">{t('Shift selesai')}</label>
             <select
               id="handover-shift"
               value={shiftID}
@@ -146,7 +154,7 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
               }}
             >
               {!shifts.length ? (
-                <option value="">Tidak ada shift</option>
+                <option value="">{t('Tidak ada shift')}</option>
               ) : (
                 shifts.map((shift) => (
                   <option key={shift.id} value={shift.id}>
@@ -165,12 +173,12 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
               onClick={() => create.mutate(shiftID)}
             >
               <Plus size={16} />
-              {create.isPending ? 'Menyusun…' : 'Susun laporan baru'}
+              {create.isPending ? t('Menyusun…') : t('Susun laporan baru')}
             </button>
             {report.data ? (
               <button className="secondary" onClick={() => window.print()}>
                 <Printer size={16} />
-                Cetak / Simpan PDF
+                {t('Cetak / Simpan PDF')}
               </button>
             ) : null}
           </div>
@@ -183,7 +191,7 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
                 setHistoryOffset(0)
               }}
             >
-              Shift lebih baru
+              {t('Shift lebih baru')}
             </button>
             <button
               className="secondary"
@@ -195,43 +203,47 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
                 setHistoryOffset(0)
               }}
             >
-              Shift lebih lama
+              {t('Shift lebih lama')}
             </button>
           </div>
         </div>
         <p className="muted">
-          {catalogue.data ? 'Evaluasi data: ' + timestamp(catalogue.data.as_of) + '. ' : ''}
-          Penyusunan memakai fakta Go dan investigasi tersimpan, tanpa panggilan model tambahan.
-          Setiap versi disimpan terpisah.
+          {catalogue.data ? t('Evaluasi data: ') + timestamp(catalogue.data.as_of) + '. ' : ''}
+          {t(
+            'Penyusunan memakai fakta Go dan investigasi tersimpan, tanpa panggilan model tambahan. Setiap versi disimpan terpisah.',
+          )}
         </p>
       </div>
-      {catalogue.error ? <ErrorMessage message={catalogue.error.message} /> : null}
+      {catalogue.error ? <ErrorMessage message={catalogue.error} /> : null}
       {create.error && create.variables === shiftID ? (
-        <ErrorMessage
-          message={'Laporan ' + (create.variables ?? '') + ': ' + create.error.message}
-        />
+        <div>
+          <p className="muted">
+            {t('Laporan')} {create.variables}
+          </p>
+          <ErrorMessage message={create.error} />
+        </div>
       ) : null}
-      {history.error ? <ErrorMessage message={history.error.message} /> : null}
-      {report.error ? <ErrorMessage message={report.error.message} /> : null}
+      {history.error ? <ErrorMessage message={history.error} /> : null}
+      {report.error ? <ErrorMessage message={report.error} /> : null}
       {catalogue.isPending || catalogue.isPlaceholderData ? (
-        <Busy text="Memuat shift…" />
+        <Busy text={t('Memuat shift…')} />
       ) : !shiftID ? (
-        <Empty title="Tidak ada shift selesai pada pilihan ini">
-          <p>Ubah lini atau tanggal operasional.</p>
+        <Empty title={t('Tidak ada shift selesai pada pilihan ini')}>
+          <p>{t('Ubah lini atau tanggal operasional.')}</p>
         </Empty>
       ) : (
         <>
           <div className="handover-history handover-screen-only">
             <div>
-              <label htmlFor="handover-history">Versi laporan tersimpan</label>
+              <label htmlFor="handover-history">{t('Versi laporan tersimpan')}</label>
               <select
                 id="handover-history"
                 value={reportID}
-                disabled={!history.data?.items.length || history.isFetching}
+                disabled={!history.data?.items.length || history.isFetching || create.isPending}
                 onChange={(event) => setSelectedReport({ shift: shiftID, id: event.target.value })}
               >
                 {!history.data?.items.length ? (
-                  <option value="">Belum ada laporan</option>
+                  <option value="">{t('Belum ada laporan')}</option>
                 ) : (
                   history.data.items.map((item) => (
                     <option key={item.id} value={item.id}>
@@ -247,7 +259,7 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
                 disabled={historyOffset === 0 || history.isFetching}
                 onClick={() => setHistoryOffset((value) => Math.max(0, value - pageSize))}
               >
-                Versi lebih baru
+                {t('Versi lebih baru')}
               </button>
               <button
                 className="secondary"
@@ -256,17 +268,17 @@ export function HandoverWorkspace({ onOpenCase }: { onOpenCase: (id: string) => 
                 }
                 onClick={() => setHistoryOffset((value) => value + pageSize)}
               >
-                Versi lebih lama
+                {t('Versi lebih lama')}
               </button>
             </div>
           </div>
           {history.isPending || (reportID && report.isPending) ? (
-            <Busy text="Memuat laporan tersimpan…" />
+            <Busy text={t('Memuat laporan tersimpan…')} />
           ) : report.data ? (
             <HandoverReport report={report.data} onOpenCase={onOpenCase} />
           ) : (
-            <Empty title="Belum ada laporan serah terima">
-              <p>Susun laporan untuk menyimpan fakta dan keputusan pada shift ini.</p>
+            <Empty title={t('Belum ada laporan serah terima')}>
+              <p>{t('Susun laporan untuk menyimpan fakta dan keputusan pada shift ini.')}</p>
             </Empty>
           )}
         </>

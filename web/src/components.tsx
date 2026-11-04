@@ -1,28 +1,45 @@
+import { ApiError } from './api'
+import { useI18n } from './i18n/context'
 import { useEffect, useRef } from 'react'
 import { ArrowUpRight, Check, FileText, LoaderCircle, X } from 'lucide-react'
-import { factLabel, factValue, stateLabel, timestamp, toolLabel } from './api'
 import type { Evidence } from './types'
 export function Badge({ value }: { value: string }) {
+  const { t, stateLabel } = useI18n()
+
   return (
     <span className={'badge badge-' + value}>
       {stateLabel[value] ??
-        { high: 'Prioritas tinggi', medium: 'Prioritas sedang', low: 'Prioritas rendah' }[value] ??
+        { high: t('Prioritas tinggi'), medium: t('Prioritas sedang'), low: t('Prioritas rendah') }[
+          value
+        ] ??
         value}
     </span>
   )
 }
-export function Busy({ text = 'Memuat data…' }: { text?: string }) {
+export function Busy({ text }: { text?: string }) {
+  const { t } = useI18n()
+
   return (
     <div className="busy" role="status">
       <LoaderCircle size={18} className="spin" />
-      {text}
+      {text ?? t('Memuat data…')}
     </div>
   )
 }
-export function ErrorMessage({ message }: { message: string }) {
+export function ErrorMessage({ message }: { message: string | Error }) {
+  const { sourceText, locale, t } = useI18n()
+
   return (
     <div className="error-message" role="alert">
-      {message}
+      {locale === 'en' &&
+      message instanceof ApiError &&
+      sourceText(message.message) === message.message
+        ? t(
+            message.code === 'validation'
+              ? 'Permintaan tidak valid. Periksa isian dan coba lagi.'
+              : 'Terjadi kesalahan layanan. Coba lagi setelah beberapa saat.',
+          )
+        : sourceText(typeof message === 'string' ? message : message.message)}
     </div>
   )
 }
@@ -44,6 +61,8 @@ export function EvidenceCard({
   evidence: Evidence
   onOpen: (e: Evidence) => void
 }) {
+  const { t, factLabel, factValue, toolLabel } = useI18n()
+
   return (
     <button className="evidence-card" onClick={() => onOpen(evidence)}>
       <div className="evidence-title">
@@ -65,7 +84,7 @@ export function EvidenceCard({
       </dl>
       <div className="evidence-foot">
         <span>
-          <Check size={12} /> {evidence.sources.length} referensi
+          <Check size={12} /> {evidence.sources.length} {t('referensi')}
         </span>
         <Badge value={evidence.completeness} />
       </div>
@@ -79,6 +98,8 @@ export function EvidenceDialog({
   evidence: Evidence | null
   onClose: () => void
 }) {
+  const { t, sourceText, factLabel, factValue, toolLabel, timestamp } = useI18n()
+
   const ref = useRef<HTMLDialogElement>(null)
   useEffect(() => {
     if (evidence) ref.current?.showModal()
@@ -98,10 +119,10 @@ export function EvidenceDialog({
         <>
           <div className="dialog-head">
             <div>
-              <span className="eyebrow">Sumber terverifikasi</span>
+              <span className="eyebrow">{t('Sumber terverifikasi')}</span>
               <h2 id="evidence-heading">{toolLabel[evidence.tool] ?? evidence.tool}</h2>
             </div>
-            <button aria-label="Tutup bukti" className="icon-button" onClick={onClose}>
+            <button aria-label={t('Tutup bukti')} className="icon-button" onClick={onClose}>
               <X />
             </button>
           </div>
@@ -116,12 +137,13 @@ export function EvidenceDialog({
           </dl>
           {evidence.notes.map((n) => (
             <p className="notice" key={n}>
-              {n}
+              {sourceText(n)}
             </p>
           ))}
-          <h3>Jejak sumber</h3>
+          <h3>{t('Jejak sumber')}</h3>
           <p className="muted">
-            Snapshot diambil {timestamp(evidence.retrieved_at)}. Referensi catatan sintetis asli:
+            {t('Snapshot diambil')} {timestamp(evidence.retrieved_at)}
+            {t('. Referensi catatan sintetis asli:')}
           </p>
           <div className="source-list">
             {evidence.sources.map((s) => (
@@ -132,7 +154,7 @@ export function EvidenceDialog({
             ))}
           </div>
           <div className="hash">
-            <strong>SHA-256 snapshot</strong>
+            <strong>{t('SHA-256 snapshot')}</strong>
             <code>{evidence.hash}</code>
           </div>
         </>

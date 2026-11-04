@@ -125,7 +125,11 @@ func (r *Runner) investigate(parent context.Context, run domain.Run) error {
 		}
 	}
 	if cp.Messages == nil {
-		cp.Messages = []Message{{Role: "system", Content: systemPrompt}, {Role: "user", Content: string(store.JSON(map[string]any{"case": c, "shift_id": c.ShiftID, "reviewer_instruction": run.Instruction}))}}
+		prompt := systemPrompt
+		if run.ReportLanguage == "en" {
+			prompt = strings.Replace(prompt, "Jawab bahasa Indonesia.", "Write all report prose in English, including summary, hypotheses, counter-evidence, information gaps, recommendation titles and rationales. Keep JSON keys, IDs, tool names, facts and numeric strings unchanged. The requested report language takes precedence over the reviewer's language preferences.", 1)
+		}
+		cp.Messages = []Message{{Role: "system", Content: prompt}, {Role: "user", Content: string(store.JSON(map[string]any{"case": c, "shift_id": c.ShiftID, "reviewer_instruction": run.Instruction}))}}
 	}
 	remaining := r.Config.RunTimeout - time.Duration(cp.ElapsedMS)*time.Millisecond
 	if remaining <= 0 {
@@ -254,7 +258,11 @@ func (r *Runner) investigate(parent context.Context, run domain.Run) error {
 			if !sufficient {
 				status = "insufficient_evidence"
 				report.Recommendations = []domain.ProposedAction{}
-				report.InformationGaps = append(report.InformationGaps, "Bukti empat domain dan cuti belum lengkap.")
+				gap := "Bukti empat domain dan cuti belum lengkap."
+				if run.ReportLanguage == "en" {
+					gap = "Evidence from all four domains and approved leave is incomplete."
+				}
+				report.InformationGaps = append(report.InformationGaps, gap)
 			}
 			return r.Store.Finish(ctx, run, status, "", report)
 		}

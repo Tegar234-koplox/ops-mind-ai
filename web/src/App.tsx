@@ -1,3 +1,5 @@
+import type { Locale } from './i18n/format'
+import { useI18n, LanguagePicker, ReportLanguage } from './i18n/context'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -20,22 +22,14 @@ import {
   Square,
   Workflow,
 } from 'lucide-react'
-import {
-  active,
-  api,
-  ApiError,
-  factLabel,
-  factValue,
-  ruleLabel,
-  stateLabel,
-  timestamp,
-  toolLabel,
-} from './api'
+import { active, api, ApiError } from './api'
 import { Badge, Busy, Empty, ErrorMessage, EvidenceCard, EvidenceDialog } from './components'
 import { HandoverWorkspace } from './handover/Workspace'
 import type { Case, CaseDetail, Evidence, Overview, Run, RunDetail } from './types'
 type Session = { username: string; model_mode: string }
 export default function App() {
+  const { t } = useI18n()
+
   const client = useQueryClient()
   const session = useQuery({
     queryKey: ['session'],
@@ -53,16 +47,18 @@ export default function App() {
     return (
       <div className="app-loading">
         <Brand />
-        <Busy text="Menghubungkan ruang investigasi…" />
+        <LanguagePicker />
+        <Busy text={t('Menghubungkan ruang investigasi…')} />
       </div>
     )
   if (session.error)
     return (
       <div className="app-loading">
         <Brand />
-        <ErrorMessage message={session.error.message} />
+        <LanguagePicker />
+        <ErrorMessage message={session.error} />
         <button className="primary" onClick={() => session.refetch()}>
-          Coba lagi
+          {t('Coba lagi')}
         </button>
       </div>
     )
@@ -83,6 +79,8 @@ function Brand() {
   )
 }
 function Login({ onSuccess }: { onSuccess: () => void }) {
+  const { t } = useI18n()
+
   const [username, setUsername] = useState('operator'),
     [password, setPassword] = useState('')
   const login = useMutation({
@@ -94,37 +92,45 @@ function Login({ onSuccess }: { onSuccess: () => void }) {
       <section className="login-story">
         <Brand />
         <div className="login-copy">
-          <span className="eyebrow light">Manufacturing operations intelligence</span>
+          <span className="eyebrow light">{t('Intelijen operasi manufaktur')}</span>
           <h1>
-            Setiap anomali
+            {t('Setiap anomali')}
             <br />
-            punya cerita.
+            {t('punya cerita.')}
             <br />
-            <em>Temukan buktinya.</em>
+            <em>{t('Temukan buktinya.')}</em>
           </h1>
           <p>
-            Investigasi lintas departemen yang menghubungkan data operasional dengan keputusan
-            manusia.
+            {t(
+              'Investigasi lintas departemen yang menghubungkan data operasional dengan keputusan manusia.',
+            )}
           </p>
           <div className="login-flow">
             <span>
-              <Activity size={18} /> Deteksi
+              <Activity size={18} />
+              {t('Deteksi')}
             </span>
             <ChevronRight size={14} />
             <span>
-              <Search size={18} /> Investigasi
+              <Search size={18} />
+              {t('Investigasi')}
             </span>
             <ChevronRight size={14} />
             <span>
-              <ShieldCheck size={18} /> Review
+              <ShieldCheck size={18} />
+              {t('Review')}
             </span>
           </div>
         </div>
         <div className="login-foot">
-          <Factory size={16} /> Satu fasilitas. Bukti dari seluruh operasi.
+          <Factory size={16} />
+          {t('Satu fasilitas. Bukti dari seluruh operasi.')}
         </div>
       </section>
       <section className="login-form-wrap">
+        <div className="login-language">
+          <LanguagePicker />
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -135,10 +141,10 @@ function Login({ onSuccess }: { onSuccess: () => void }) {
           <span className="login-lock">
             <Fingerprint size={30} />
           </span>
-          <span className="eyebrow">Akses operator</span>
-          <h2>Masuk ke ruang investigasi</h2>
-          <p className="muted">Gunakan kredensial operator pada konfigurasi aplikasi.</p>
-          <label htmlFor="username">Nama pengguna</label>
+          <span className="eyebrow">{t('Akses operator')}</span>
+          <h2>{t('Masuk ke ruang investigasi')}</h2>
+          <p className="muted">{t('Gunakan kredensial operator pada konfigurasi aplikasi.')}</p>
+          <label htmlFor="username">{t('Nama pengguna')}</label>
           <input
             id="username"
             autoComplete="username"
@@ -146,7 +152,7 @@ function Login({ onSuccess }: { onSuccess: () => void }) {
             onChange={(e) => setUsername(e.target.value)}
             required
           />
-          <label htmlFor="password">Kata sandi</label>
+          <label htmlFor="password">{t('Kata sandi')}</label>
           <input
             id="password"
             type="password"
@@ -155,14 +161,16 @@ function Login({ onSuccess }: { onSuccess: () => void }) {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          {login.error ? <ErrorMessage message={login.error.message} /> : null}
+          {login.error ? <ErrorMessage message={login.error} /> : null}
           <button className="primary" disabled={login.isPending}>
-            {login.isPending ? 'Memeriksa akses…' : 'Masuk'}
+            {login.isPending ? t('Memeriksa akses…') : t('Masuk')}
             <ArrowRight size={17} />
           </button>
           <p className="login-disclaimer">
-            <ShieldCheck size={15} /> Data manufaktur sintetis. Keputusan operasional tetap
-            memerlukan peninjau manusia.
+            <ShieldCheck size={15} />
+            {t(
+              'Data manufaktur sintetis. Keputusan operasional tetap memerlukan peninjau manusia.',
+            )}
           </p>
         </form>
       </section>
@@ -170,13 +178,15 @@ function Login({ onSuccess }: { onSuccess: () => void }) {
   )
 }
 function Workspace({ session }: { session: Session }) {
+  const { t, sourceText, locale, factLabel, factValue, ruleLabel, stateLabel } = useI18n()
+
   const client = useQueryClient(),
     [view, setView] = useState<'investigations' | 'handover'>('investigations'),
     [selected, setSelected] = useState(''),
     [search, setSearch] = useState(''),
     [tab, setTab] = useState('live'),
     [openEvidence, setOpenEvidence] = useState<Evidence | null>(null),
-    [error, setError] = useState('')
+    [error, setError] = useState<Error | null>(null)
   function openTab(next: string) {
     setView('investigations')
     setTab(next)
@@ -222,18 +232,18 @@ function Workspace({ session }: { session: Session }) {
     return () => stream.close()
   }, [runID, detail.data?.latest_run?.status, caseID, client])
   const detect = useMutation({
-    mutationFn: () => api('/detections', {}),
+    mutationFn: (language: Locale) => api('/detections', { report_language: language }),
     onSuccess: () => {
-      setError('')
+      setError(null)
       invalidate()
     },
-    onError: (e) => setError(e.message),
+    onError: (e) => setError(e),
   })
   const start = useMutation({
-    mutationFn: (instruction: string) =>
+    mutationFn: ({ instruction, language }: { instruction: string; language: Locale }) =>
       api<Run>(
         '/cases/' + caseID + (instruction ? '/follow-up-investigations' : '/investigations'),
-        { instruction },
+        { instruction, report_language: language },
       ),
     onSuccess: async (run) => {
       const caseKey = ['case', run.case_id]
@@ -243,15 +253,15 @@ function Workspace({ session }: { session: Session }) {
       )
       client.setQueryData<RunDetail>(['run', run.id], { run, evidence: [], events: [] })
       if (caseID === run.case_id) setTab('live')
-      setError('')
+      setError(null)
       invalidate()
     },
-    onError: (e) => setError(e.message),
+    onError: (e) => setError(e),
   })
   const cancel = useMutation({
     mutationFn: () => api('/investigations/' + runID + '/cancel', {}),
     onSuccess: invalidate,
-    onError: (e) => setError(e.message),
+    onError: (e) => setError(e),
   })
   const logout = useMutation({
     mutationFn: () => api('/auth/logout', {}),
@@ -260,11 +270,11 @@ function Workspace({ session }: { session: Session }) {
       client.setQueryData(['session'], null)
       client.removeQueries({ predicate: (q) => q.queryKey[0] !== 'session' })
     },
-    onError: (e) => setError(e.message),
+    onError: (e) => setError(e),
   })
   const data = overview.data,
     visible = items.filter((c) =>
-      (ruleLabel[c.rule_id] + ' ' + c.department + ' ' + c.rule_id)
+      (ruleLabel[c.rule_id] + ' ' + sourceText(c.department) + ' ' + c.rule_id)
         .toLowerCase()
         .includes(search.toLowerCase()),
     )
@@ -272,8 +282,8 @@ function Workspace({ session }: { session: Session }) {
     <div className={'app-shell' + (view === 'handover' ? ' is-handover' : '')}>
       <aside className="sidebar">
         <Brand />
-        <div className="workspace-label">WORKSPACE</div>
-        <nav aria-label="Navigasi utama">
+        <div className="workspace-label">{t('RUANG KERJA')}</div>
+        <nav aria-label={t('Navigasi utama')}>
           <button
             className={
               'nav-item' + (view === 'investigations' && tab === 'live' ? ' selected' : '')
@@ -281,7 +291,7 @@ function Workspace({ session }: { session: Session }) {
             aria-current={view === 'investigations' && tab === 'live' ? 'page' : undefined}
             onClick={() => openTab('live')}
           >
-            <LayoutList size={18} /> Investigasi <span>{data?.cases ?? 0}</span>
+            <LayoutList size={18} /> {t('Investigasi')} <span>{data?.cases ?? 0}</span>
           </button>
           <button
             className={
@@ -290,7 +300,8 @@ function Workspace({ session }: { session: Session }) {
             aria-current={view === 'investigations' && tab === 'report' ? 'page' : undefined}
             onClick={() => openTab('report')}
           >
-            <Layers3 size={18} /> Laporan bukti
+            <Layers3 size={18} />
+            {t('Laporan bukti')}
           </button>
           <button
             className={
@@ -299,14 +310,15 @@ function Workspace({ session }: { session: Session }) {
             aria-current={view === 'investigations' && tab === 'review' ? 'page' : undefined}
             onClick={() => openTab('review')}
           >
-            <ShieldCheck size={18} /> Review manusia <i className="nav-dot" />
+            <ShieldCheck size={18} /> {t('Review manusia')} <i className="nav-dot" />
           </button>
           <button
             className={'nav-item' + (view === 'handover' ? ' selected' : '')}
             aria-current={view === 'handover' ? 'page' : undefined}
             onClick={() => setView('handover')}
           >
-            <ClipboardList size={18} /> Serah terima shift
+            <ClipboardList size={18} />
+            {t('Serah terima shift')}
           </button>
         </nav>
         <div className="sidebar-bottom">
@@ -315,47 +327,58 @@ function Workspace({ session }: { session: Session }) {
               <Factory size={19} />
             </span>
             <div>
-              <strong>Fasilitas demo</strong>
+              <strong>{t('Fasilitas demo')}</strong>
               <small>FACTORY-01 · Asia/Bangkok</small>
             </div>
           </div>
           <div className="sidebar-note">
-            <span className="status-dot" /> Data sintetis · Seed 20261027
+            <span className="status-dot" />
+            {t('Data sintetis · Seed 20261027')}
           </div>
         </div>
       </aside>
       <div className="workspace">
         <header className="topbar">
           <div className="breadcrumb">
-            Operasional <ChevronRight size={13} />
-            <strong>{view === 'handover' ? 'Serah terima shift' : 'Investigasi'}</strong>
+            {t('Operasional')}
+            <ChevronRight size={13} />
+            <strong>{view === 'handover' ? t('Serah terima shift') : t('Investigasi')}</strong>
           </div>
           <div className="operator">
+            <LanguagePicker />
             <span className="top-status">
-              <span className="status-dot" /> Workspace terlindungi
+              <span className="status-dot" />
+              {t('Workspace terlindungi')}
             </span>
             <span className="avatar">{session.username[0].toUpperCase()}</span>
             <span>{session.username}</span>
-            <button className="icon-button" aria-label="Keluar" onClick={() => logout.mutate()}>
+            <button
+              className="icon-button"
+              aria-label={t('Keluar')}
+              onClick={() => logout.mutate()}
+            >
               <LogOut size={17} />
             </button>
           </div>
         </header>
         <main className="main-content">
-          <div className="workspace-switch handover-screen-only" aria-label="Pilih ruang kerja">
+          <div
+            className="workspace-switch handover-screen-only"
+            aria-label={t('Pilih ruang kerja')}
+          >
             <button
               className="secondary"
               aria-pressed={view === 'investigations'}
               onClick={() => setView('investigations')}
             >
-              Ruang investigasi
+              {t('Ruang investigasi')}
             </button>
             <button
               className="secondary"
               aria-pressed={view === 'handover'}
               onClick={() => setView('handover')}
             >
-              Serah terima shift
+              {t('Serah terima shift')}
             </button>
           </div>
           {view === 'handover' ? (
@@ -369,74 +392,78 @@ function Workspace({ session }: { session: Session }) {
             <>
               <div className="page-heading">
                 <div>
-                  <span className="eyebrow">OPERATIONS INTELLIGENCE</span>
+                  <span className="eyebrow">{t('INTELIJEN OPERASIONAL')}</span>
                   <h1>
-                    Ruang investigasi<span>.</span>
+                    {t('Ruang investigasi')}
+                    <span>.</span>
                   </h1>
-                  <p>Hubungkan anomali, telusuri bukti, ambil keputusan.</p>
+                  <p>{t('Hubungkan anomali, telusuri bukti, ambil keputusan.')}</p>
                 </div>
                 <button
                   className="primary"
-                  onClick={() => detect.mutate()}
+                  onClick={() => detect.mutate(locale)}
                   disabled={detect.isPending}
                 >
                   <Activity size={17} />
-                  {detect.isPending ? 'Mendeteksi…' : 'Jalankan deteksi'}
+                  {detect.isPending ? t('Mendeteksi…') : t('Jalankan deteksi')}
                 </button>
               </div>
               <div className={'mode-banner ' + (data?.model_mode === 'mock' ? 'mock' : 'meta')}>
                 <Sparkles size={17} />
-                <strong>{data?.model_mode === 'mock' ? 'SIMULASI MODEL' : 'META AI'}</strong>
+                <strong>{data?.model_mode === 'mock' ? t('SIMULASI MODEL') : t('META AI')}</strong>
                 <span>
                   {data?.model_mode === 'mock'
-                    ? 'Respons model tiruan untuk pengujian. Data, tool, dan penyimpanan tetap nyata.'
-                    : (data?.model_name ?? 'Menghubungkan model') +
-                      ' · Agent memilih bukti melalui tool baca terbatas.'}
+                    ? t(
+                        'Respons model tiruan untuk pengujian. Data, tool, dan penyimpanan tetap nyata.',
+                      )
+                    : (data?.model_name ?? t('Menghubungkan model')) +
+                      t(' · Agent memilih bukti melalui tool baca terbatas.')}
                 </span>
               </div>
               {error ? <ErrorMessage message={error} /> : null}
-              {overview.error ? <ErrorMessage message={overview.error.message} /> : null}
-              <section className="stat-grid" aria-label="Status workspace">
+              {overview.error ? <ErrorMessage message={overview.error} /> : null}
+              <section className="stat-grid" aria-label={t('Status workspace')}>
                 <Stat
-                  label="Kasus terdeteksi"
+                  label={t('Kasus terdeteksi')}
                   value={data?.cases}
                   icon={<LayoutList />}
-                  note={(data?.active_rule_count ?? 4) + ' aturan aktif'}
+                  note={(data?.active_rule_count ?? 4) + t(' aturan aktif')}
                 />
                 <Stat
-                  label="Investigasi aktif"
+                  label={t('Investigasi aktif')}
                   value={data?.active_runs}
                   icon={<Activity />}
-                  note="Proses dengan checkpoint"
+                  note={t('Proses dengan checkpoint')}
                 />
                 <Stat
-                  label="Menunggu review"
+                  label={t('Menunggu review')}
                   value={data?.pending_reviews}
                   icon={<Bell />}
-                  note="Keputusan ada pada manusia"
+                  note={t('Keputusan ada pada manusia')}
                 />
                 <Stat
-                  label="Terpakai / direservasi"
+                  label={t('Terpakai / direservasi')}
                   value={
                     data ? 'US$' + ((data.budget_micros.total ?? 0) / 1e6).toFixed(3) : undefined
                   }
                   icon={<CircleDot />}
-                  note={'Batas aplikasi US$' + (data?.credit_limit_micros ?? 20000000) / 1e6}
+                  note={t('Batas aplikasi US$') + (data?.credit_limit_micros ?? 20000000) / 1e6}
                 />
               </section>
               <section className="investigation-workspace">
                 <div className="inbox">
                   <div className="panel-heading">
                     <h2>
-                      Inbox kasus <span>{items.length}</span>
+                      {t('Inbox kasus')}
+                      <span>{items.length}</span>
                     </h2>
-                    <span className="subtle-tag">SEMUA LINI</span>
+                    <span className="subtle-tag">{t('SEMUA LINI')}</span>
                   </div>
                   <label className="search">
                     <Search size={16} />
                     <input
-                      aria-label="Cari kasus"
-                      placeholder="Cari kasus atau departemen…"
+                      aria-label={t('Cari kasus')}
+                      placeholder={t('Cari kasus atau departemen…')}
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                     />
@@ -445,7 +472,7 @@ function Workspace({ session }: { session: Session }) {
                     {cases.isPending ? (
                       <Busy />
                     ) : cases.error ? (
-                      <ErrorMessage message={cases.error.message} />
+                      <ErrorMessage message={cases.error} />
                     ) : visible.length ? (
                       visible.map((c) => (
                         <button
@@ -458,10 +485,12 @@ function Workspace({ session }: { session: Session }) {
                         >
                           <div className="case-item-top">
                             <span className={'case-rule ' + c.severity}>{c.rule_id}</span>
-                            <span className="case-department">{c.department}</span>
+                            <span className="case-department">{sourceText(c.department)}</span>
                           </div>
                           <h3>{ruleLabel[c.rule_id] ?? c.rule_id}</h3>
-                          <p>Assembly Line {c.entity_id} · Shift operasional</p>
+                          <p>
+                            {t('Lini perakitan')} {c.entity_id} {t('· Shift operasional')}
+                          </p>
                           <div className="case-item-bottom">
                             <Badge value={c.severity} />
                             <span>{stateLabel[c.status] ?? c.status}</span>
@@ -469,49 +498,51 @@ function Workspace({ session }: { session: Session }) {
                         </button>
                       ))
                     ) : (
-                      <Empty title={search ? 'Kasus tidak ditemukan' : 'Belum ada kasus'}>
+                      <Empty title={search ? t('Kasus tidak ditemukan') : t('Belum ada kasus')}>
                         <p>
                           {search
-                            ? 'Gunakan kata kunci lain.'
-                            : 'Jalankan deteksi untuk memeriksa lini produksi.'}
+                            ? t('Gunakan kata kunci lain.')
+                            : t('Jalankan deteksi untuk memeriksa lini produksi.')}
                         </p>
                       </Empty>
                     )}
                   </div>
                   <div className="inbox-foot">
-                    <ShieldCheck size={13} /> Seluruh catatan adalah data sintetis
+                    <ShieldCheck size={13} />
+                    {t('Seluruh catatan adalah data sintetis')}
                   </div>
                 </div>
                 <div className="case-panel">
                   {!caseID ? (
-                    <Empty title="Mulai dari satu pertanyaan">
+                    <Empty title={t('Mulai dari satu pertanyaan')}>
                       <p>
-                        Mengapa biaya lembur meningkat saat output menurun?
+                        {t('Mengapa biaya lembur meningkat saat output menurun?')}
                         <br />
-                        Jalankan deteksi untuk menghubungkan buktinya.
+                        {t('Jalankan deteksi untuk menghubungkan buktinya.')}
                       </p>
                       <button
                         className="secondary"
                         disabled={detect.isPending}
-                        onClick={() => detect.mutate()}
+                        onClick={() => detect.mutate(locale)}
                       >
-                        Deteksi anomali <ArrowRight size={15} />
+                        {t('Deteksi anomali')}
+                        <ArrowRight size={15} />
                       </button>
                     </Empty>
                   ) : detail.isPending ? (
-                    <Busy text="Memuat konteks kasus…" />
+                    <Busy text={t('Memuat konteks kasus…')} />
                   ) : detail.error ? (
-                    <ErrorMessage message={detail.error.message} />
+                    <ErrorMessage message={detail.error} />
                   ) : detail.data ? (
                     <>
                       <div className="case-header">
                         <div>
                           <span className="eyebrow">
-                            ASSEMBLY LINE {detail.data.case.entity_id} <span> / </span>{' '}
+                            {t('LINI PERAKITAN')} {detail.data.case.entity_id} <span> / </span>{' '}
                             {detail.data.case.rule_id}
                           </span>
                           <h2>{ruleLabel[detail.data.case.rule_id] ?? detail.data.case.rule_id}</h2>
-                          <p>{detail.data.case.explanation}</p>
+                          <p>{sourceText(detail.data.case.explanation)}</p>
                         </div>
                         <Badge value={detail.data.case.data_quality} />
                       </div>
@@ -523,11 +554,11 @@ function Workspace({ session }: { session: Session }) {
                           </div>
                         ))}
                       </div>
-                      <div className="tabs" role="tablist" aria-label="Tahap investigasi">
+                      <div className="tabs" role="tablist" aria-label={t('Tahap investigasi')}>
                         {[
-                          ['live', 'Investigasi langsung'],
-                          ['report', 'Laporan bukti'],
-                          ['review', 'Review manusia'],
+                          ['live', t('Investigasi langsung')],
+                          ['report', t('Laporan bukti')],
+                          ['review', t('Review manusia')],
                         ].map(([id, label], i) => (
                           <button
                             role="tab"
@@ -550,13 +581,13 @@ function Workspace({ session }: { session: Session }) {
                         aria-labelledby={'tab-' + tab}
                       >
                         {investigation.error ? (
-                          <ErrorMessage message={investigation.error.message} />
+                          <ErrorMessage message={investigation.error} />
                         ) : null}
                         {tab === 'live' ? (
                           <Live
                             detail={investigation.data}
                             latest={detail.data.latest_run}
-                            onStart={() => start.mutate('')}
+                            onStart={() => start.mutate({ instruction: '', language: locale })}
                             starting={start.isPending}
                             onCancel={() => cancel.mutate()}
                             cancelling={cancel.isPending}
@@ -572,7 +603,9 @@ function Workspace({ session }: { session: Session }) {
                           <ReviewPanel
                             detail={detail.data}
                             onChanged={invalidate}
-                            onFollowup={(instruction) => start.mutate(instruction)}
+                            onFollowup={(instruction) =>
+                              start.mutate({ instruction, language: locale })
+                            }
                             busy={start.isPending}
                           />
                         )}
@@ -585,9 +618,12 @@ function Workspace({ session }: { session: Session }) {
           )}
           <footer className="main-footer">
             <span>
-              <ShieldCheck size={13} /> Fakta dari data. Hipotesis dari AI. Keputusan dari manusia.
+              <ShieldCheck size={13} />
+              {t('Fakta dari data. Hipotesis dari AI. Keputusan dari manusia.')}
             </span>
-            <span>{data?.employees ?? 150} pekerja sintetis · 60 hari riwayat</span>
+            <span>
+              {data?.employees ?? 150} {t('pekerja sintetis · 60 hari riwayat')}
+            </span>
           </footer>
         </main>
       </div>
@@ -634,14 +670,18 @@ function Live({
   cancelling: boolean
   onReport: () => void
 }) {
+  const { t, sourceText, stateLabel, timestamp } = useI18n()
+
   const run = detail?.run ?? latest
   if (!run)
     return (
-      <Empty title="Bukti siap ditelusuri">
-        <p>Agent memilih tool, memeriksa konteks lintas departemen, lalu menyusun hipotesis.</p>
+      <Empty title={t('Bukti siap ditelusuri')}>
+        <p>
+          {t('Agent memilih tool, memeriksa konteks lintas departemen, lalu menyusun hipotesis.')}
+        </p>
         <button className="primary" onClick={onStart} disabled={starting}>
           <Play size={16} />
-          {starting ? 'Menambahkan ke antrean…' : 'Mulai investigasi'}
+          {starting ? t('Menambahkan ke antrean…') : t('Mulai investigasi')}
         </button>
       </Empty>
     )
@@ -652,10 +692,10 @@ function Live({
           <Workflow size={23} />
         </span>
         <div>
-          <h3>{active(run.status) ? 'Menelusuri bukti operasional' : stateLabel[run.status]}</h3>
+          <h3>{active(run.status) ? t('Menelusuri bukti operasional') : stateLabel[run.status]}</h3>
           <p>
-            {run.mode === 'mock' ? 'Mode simulasi · ' : 'Meta AI · '}
-            {run.tool_calls} tool selesai · {run.model_rounds} putaran model
+            {run.mode === 'mock' ? t('Mode simulasi · ') : t('Meta AI · ')}
+            {run.tool_calls} {t('tool selesai ·')} {run.model_rounds} {t('putaran model')}
           </p>
         </div>
         <Badge value={run.status} />
@@ -667,15 +707,15 @@ function Live({
           return (
             <div className={done ? 'done' : ''} key={domain}>
               <span>{done ? <Check size={12} /> : i + 1}</span>
-              {['Biaya', 'Workforce', 'Produksi', 'Maintenance'][i]}
+              {[t('Biaya'), t('Workforce'), t('Produksi'), t('Maintenance')][i]}
             </div>
           )
         })}
       </div>
       <div className="section-heading">
-        <h3>Jejak investigasi</h3>
+        <h3>{t('Jejak investigasi')}</h3>
         <span className="muted">
-          {active(run.status) ? 'SSE · polling cadangan' : 'Tersimpan di PostgreSQL'}
+          {active(run.status) ? t('SSE · polling cadangan') : t('Tersimpan di PostgreSQL')}
         </span>
       </div>
       <ol className="timeline">
@@ -683,7 +723,7 @@ function Live({
           <li key={event.id}>
             <span className={'timeline-dot ' + event.kind} />
             <div>
-              <strong>{event.message}</strong>
+              <strong>{sourceText(event.message)}</strong>
               <small>{timestamp(event.created_at)}</small>
             </div>
             {event.kind === 'evidence_collected' ? <ShieldCheck size={14} /> : null}
@@ -694,19 +734,20 @@ function Live({
         {active(run.status) ? (
           <button className="secondary" onClick={onCancel} disabled={cancelling}>
             <Square size={13} />
-            Batalkan investigasi
+            {t('Batalkan investigasi')}
           </button>
         ) : run.report ? (
           <button className="primary" onClick={onReport}>
-            Buka laporan bukti <ArrowRight size={16} />
+            {t('Buka laporan bukti')}
+            <ArrowRight size={16} />
           </button>
         ) : (
           <button className="secondary" onClick={onStart} disabled={starting}>
-            Investigasi ulang
+            {t('Investigasi ulang')}
           </button>
         )}
         <span className="muted">
-          {'Pemakaian tercatat: US$' + (run.cost_micros / 1e6).toFixed(4)}
+          {t('Pemakaian tercatat: US$') + (run.cost_micros / 1e6).toFixed(4)}
         </span>
       </div>
     </>
@@ -721,29 +762,34 @@ function ReportPanel({
   onOpen: (e: Evidence) => void
   onReview: () => void
 }) {
+  const { t, toolLabel } = useI18n()
+
   if (!detail?.run.report)
     return (
-      <Empty title="Laporan belum tersedia">
-        <p>Laporan muncul setelah agent selesai mengumpulkan dan memvalidasi bukti.</p>
+      <Empty title={t('Laporan belum tersedia')}>
+        <p>{t('Laporan muncul setelah agent selesai mengumpulkan dan memvalidasi bukti.')}</p>
       </Empty>
     )
   const report = detail.run.report
   return (
     <>
+      <ReportLanguage language={detail.run.report_language} />
       <div className="report-intro">
         <span className="eyebrow">
-          SINTESIS INVESTIGASI {detail.run.mode === 'mock' ? '· SIMULASI' : ''}
+          {t('SINTESIS INVESTIGASI')} {detail.run.mode === 'mock' ? t('· SIMULASI') : ''}
         </span>
-        <p>{report.summary}</p>
+        <p lang={detail.run.report_language || 'id'}>{report.summary}</p>
         <small>
-          Kesimpulan sementara memerlukan verifikasi manusia. Format dan referensi valid tidak
-          membuktikan kausalitas.
+          {t(
+            'Kesimpulan sementara memerlukan verifikasi manusia. Format dan referensi valid tidak membuktikan kausalitas.',
+          )}
         </small>
       </div>
       <div className="section-heading">
-        <h3>Observasi dari catatan sumber</h3>
+        <h3>{t('Observasi dari catatan sumber')}</h3>
         <span className="verified-label">
-          <ShieldCheck size={13} /> Dihitung oleh Go
+          <ShieldCheck size={13} />
+          {t('Dihitung oleh Go')}
         </span>
       </div>
       <div className="evidence-grid">
@@ -752,19 +798,21 @@ function ReportPanel({
         ))}
       </div>
       <div className="section-heading">
-        <h3>Hipotesis kontribusi</h3>
-        <span className="subtle-tag">BELUM TERBUKTI KAUSAL</span>
+        <h3>{t('Hipotesis kontribusi')}</h3>
+        <span className="subtle-tag">{t('BELUM TERBUKTI KAUSAL')}</span>
       </div>
       {report.hypotheses.map((h, i) => (
         <article className="hypothesis" key={i}>
           <span className="hypothesis-number">0{i + 1}</span>
           <div>
             <span className="confidence">
-              Kekuatan bukti: {h.confidence === 'medium' ? 'sedang' : 'rendah'}
+              {t('Kekuatan bukti:')} {h.confidence === 'medium' ? t('sedang') : t('rendah')}
             </span>
-            <p>{h.statement}</p>
+            <p lang={detail.run.report_language || 'id'}>{h.statement}</p>
             {h.counter_evidence.map((t) => (
-              <small key={t}>{t}</small>
+              <small lang={detail.run.report_language || 'id'} key={t}>
+                {t}
+              </small>
             ))}
             <div className="evidence-links">
               {h.evidence_ids.map((id) => {
@@ -781,16 +829,19 @@ function ReportPanel({
         </article>
       ))}
       <div className="information-gaps">
-        <h3>Yang masih perlu diketahui</h3>
+        <h3>{t('Yang masih perlu diketahui')}</h3>
         <ul>
           {report.information_gaps.map((g, i) => (
-            <li key={i}>{g}</li>
+            <li lang={detail.run.report_language || 'id'} key={i}>
+              {g}
+            </li>
           ))}
         </ul>
       </div>
       {detail.run.status === 'succeeded' ? (
         <button className="primary" onClick={onReview}>
-          Tinjau rekomendasi <ArrowRight size={16} />
+          {t('Tinjau rekomendasi')}
+          <ArrowRight size={16} />
         </button>
       ) : null}
     </>
@@ -807,6 +858,8 @@ function ReviewPanel({
   onFollowup: (instruction: string) => void
   busy: boolean
 }) {
+  const { t, sourceText, stateLabel, timestamp } = useI18n()
+
   const [reasons, setReasons] = useState<Record<string, string>>({}),
     [instruction, setInstruction] = useState('')
   const review = useMutation({
@@ -821,17 +874,18 @@ function ReviewPanel({
       <div className="review-notice">
         <ShieldCheck size={19} />
         <div>
-          <strong>Anda memegang keputusan akhir.</strong>
+          <strong>{t('Anda memegang keputusan akhir.')}</strong>
           <p>
-            Persetujuan mencatat keputusan review. Data bisnis dan jadwal pekerja tidak berubah
-            otomatis.
+            {t(
+              'Persetujuan mencatat keputusan review. Data bisnis dan jadwal pekerja tidak berubah otomatis.',
+            )}
           </p>
         </div>
       </div>
-      {review.error ? <ErrorMessage message={review.error.message} /> : null}
+      {review.error ? <ErrorMessage message={review.error} /> : null}
       {!recs.length ? (
-        <Empty title="Belum ada rekomendasi untuk direview">
-          <p>Investigasi yang berhasil menghasilkan tindakan beserta buktinya.</p>
+        <Empty title={t('Belum ada rekomendasi untuk direview')}>
+          <p>{t('Investigasi yang berhasil menghasilkan tindakan beserta buktinya.')}</p>
         </Empty>
       ) : (
         recs.map((rec, i) => (
@@ -839,28 +893,29 @@ function ReviewPanel({
             <div className="recommendation-top">
               <span className="action-number">{i + 1}</span>
               <div>
-                <span className="eyebrow">{rec.department}</span>
-                <h3>{rec.title}</h3>
+                <span className="eyebrow">{sourceText(rec.department)}</span>
+                <h3 lang={latest?.report_language || 'id'}>{rec.title}</h3>
               </div>
               {rec.decision ? (
                 <Badge value={rec.decision} />
               ) : (
-                <span className="subtle-tag">MENUNGGU ANDA</span>
+                <span className="subtle-tag">{t('MENUNGGU ANDA')}</span>
               )}
             </div>
-            <p>{rec.rationale}</p>
+            <p lang={latest?.report_language || 'id'}>{rec.rationale}</p>
             <small className="muted">
-              {rec.evidence_ids.length} bukti pendukung · run {rec.run_id.slice(0, 8)}
+              {rec.evidence_ids.length} {t('bukti pendukung · run')} {rec.run_id.slice(0, 8)}
             </small>
             {rec.decision ? (
               <div className="review-record">
                 <Check size={14} />
-                {rec.reviewer} · {rec.reason || 'Disetujui tanpa catatan tambahan'}
+                {rec.reviewer} · {rec.reason || t('Disetujui tanpa catatan tambahan')}
               </div>
             ) : (
               <>
                 <label htmlFor={'reason-' + rec.id}>
-                  Catatan peninjau <span>(wajib untuk penolakan)</span>
+                  {t('Catatan peninjau')}
+                  <span>{t('(wajib untuk penolakan)')}</span>
                 </label>
                 <textarea
                   id={'reason-' + rec.id}
@@ -868,7 +923,7 @@ function ReviewPanel({
                   maxLength={2000}
                   value={reasons[rec.id] ?? ''}
                   onChange={(e) => setReasons((v) => ({ ...v, [rec.id]: e.target.value }))}
-                  placeholder="Pertimbangan atau informasi tambahan…"
+                  placeholder={t('Pertimbangan atau informasi tambahan…')}
                 />
                 <div className="review-buttons">
                   <button
@@ -877,7 +932,7 @@ function ReviewPanel({
                     onClick={() => review.mutate({ id: rec.id, decision: 'approved' })}
                   >
                     <Check size={15} />
-                    Setujui rekomendasi
+                    {t('Setujui rekomendasi')}
                   </button>
                   <button
                     className="secondary"
@@ -888,7 +943,7 @@ function ReviewPanel({
                     }
                     onClick={() => review.mutate({ id: rec.id, decision: 'rejected' })}
                   >
-                    Tolak
+                    {t('Tolak')}
                   </button>
                 </div>
               </>
@@ -896,14 +951,17 @@ function ReviewPanel({
           </article>
         ))
       )}
+      <p className="muted">
+        {t('Laporan AI baru menggunakan bahasa aplikasi saat investigasi dimulai.')}
+      </p>
       <div className="followup">
-        <h3>Masih ada pertanyaan?</h3>
-        <label htmlFor="followup">Instruksi investigasi lanjutan</label>
+        <h3>{t('Masih ada pertanyaan?')}</h3>
+        <label htmlFor="followup">{t('Instruksi investigasi lanjutan')}</label>
         <textarea
           id="followup"
           maxLength={2000}
           rows={2}
-          placeholder="Bukti apa yang perlu ditinjau kembali?"
+          placeholder={t('Bukti apa yang perlu ditinjau kembali?')}
           value={instruction}
           onChange={(e) => setInstruction(e.target.value)}
         />
@@ -913,12 +971,12 @@ function ReviewPanel({
           disabled={busy || active(latest?.status) || !instruction.trim()}
         >
           <Search size={15} />
-          Investigasi lanjutan
+          {t('Investigasi lanjutan')}
         </button>
       </div>
       <div className="section-heading">
-        <h3>Jejak keputusan</h3>
-        <span className="muted">Audit append-only</span>
+        <h3>{t('Jejak keputusan')}</h3>
+        <span className="muted">{t('Audit append-only')}</span>
       </div>
       <ol className="audit-list">
         {detail.audit.map((v) => (
@@ -928,13 +986,13 @@ function ReviewPanel({
               <strong>
                 {(
                   {
-                    case_detected: 'Anomali dideteksi',
-                    investigation_queued: 'Investigasi dijadwalkan',
-                    investigation_succeeded: 'Laporan selesai',
-                    investigation_failed: 'Investigasi terhenti',
-                    investigation_insufficient_evidence: 'Bukti belum cukup',
-                    recommendation_reviewed: 'Keputusan review dicatat',
-                    investigation_cancelled: 'Investigasi dibatalkan',
+                    case_detected: t('Anomali dideteksi'),
+                    investigation_queued: t('Investigasi dijadwalkan'),
+                    investigation_succeeded: t('Laporan selesai'),
+                    investigation_failed: t('Investigasi terhenti'),
+                    investigation_insufficient_evidence: t('Bukti belum cukup'),
+                    recommendation_reviewed: t('Keputusan review dicatat'),
+                    investigation_cancelled: t('Investigasi dibatalkan'),
                   } as Record<string, string>
                 )[v.action] ?? v.action}
                 {v.details.decision ? ' · ' + stateLabel[v.details.decision] : ''}

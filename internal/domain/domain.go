@@ -75,22 +75,23 @@ type Report struct {
 	Recommendations        []ProposedAction `json:"recommendations"`
 }
 type Run struct {
-	ID           string          `json:"id"`
-	CaseID       string          `json:"case_id"`
-	Status       string          `json:"status"`
-	Mode         string          `json:"mode"`
-	Instruction  string          `json:"instruction"`
-	Error        string          `json:"error,omitempty"`
-	Report       *Report         `json:"report,omitempty"`
-	Checkpoint   json.RawMessage `json:"-"`
-	CreatedAt    time.Time       `json:"created_at"`
-	StartedAt    *time.Time      `json:"started_at"`
-	FinishedAt   *time.Time      `json:"finished_at"`
-	ModelRounds  int             `json:"model_rounds"`
-	ToolCalls    int             `json:"tool_calls"`
-	InputTokens  int64           `json:"input_tokens"`
-	OutputTokens int64           `json:"output_tokens"`
-	CostMicros   int64           `json:"cost_micros"`
+	ID             string          `json:"id"`
+	CaseID         string          `json:"case_id"`
+	Status         string          `json:"status"`
+	Mode           string          `json:"mode"`
+	Instruction    string          `json:"instruction"`
+	ReportLanguage string          `json:"report_language"`
+	Error          string          `json:"error,omitempty"`
+	Report         *Report         `json:"report,omitempty"`
+	Checkpoint     json.RawMessage `json:"-"`
+	CreatedAt      time.Time       `json:"created_at"`
+	StartedAt      *time.Time      `json:"started_at"`
+	FinishedAt     *time.Time      `json:"finished_at"`
+	ModelRounds    int             `json:"model_rounds"`
+	ToolCalls      int             `json:"tool_calls"`
+	InputTokens    int64           `json:"input_tokens"`
+	OutputTokens   int64           `json:"output_tokens"`
+	CostMicros     int64           `json:"cost_micros"`
 }
 type Recommendation struct {
 	ID     string `json:"id"`

@@ -1,12 +1,9 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './auth'
 
 test('shift handover preserves versions, facts and printable review context', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('/')
-  await page.getByLabel('Nama pengguna').fill(process.env.OPERATOR_USERNAME || 'operator')
-  await page.getByLabel('Kata sandi', { exact: true }).fill(process.env.OPERATOR_PASSWORD!)
-  await page.getByRole('button', { name: 'Masuk', exact: true }).click()
   await page.getByRole('button', { name: 'Jalankan deteksi', exact: true }).click()
   await page.locator('.case-item').filter({ hasText: 'OT-001' }).click()
   await expect(page.getByRole('button', { name: 'Buka laporan bukti' })).toBeVisible({
@@ -61,6 +58,7 @@ test('shift handover preserves versions, facts and printable review context', as
   }
   await page.unrouteAll({ behavior: 'wait' })
   await page.getByLabel('Versi laporan tersimpan').selectOption(firstID)
+  await expect(page.getByLabel('Versi laporan tersimpan')).toHaveValue(firstID)
   await expect(report).toContainText(firstID)
   await page.reload()
   await page.getByRole('button', { name: 'Serah terima shift', exact: true }).click()

@@ -104,3 +104,11 @@ Kode aplikasi memakai [lisensi MIT](LICENSE); library dan ikon mempertahankan [l
 ## Titik lanjut
 
 Baca [catatan handoff](docs/HANDOFF.md) sebelum melanjutkan pekerjaan. Status pengujian, kendala publikasi, dan batas cakupan dicatat di sana.
+
+## Bahasa Indonesia / English
+
+Pilih Indonesia atau English melalui kontrol bahasa pada halaman login atau header workspace. Preferensi disimpan di browser; bila penyimpanan browser tidak tersedia, pemilih tetap bekerja pada sesi halaman tersebut. Label, status, pesan kesalahan, fakta dan format angka/waktu mengikuti bahasa pilihan, dengan zona operasional tetap Asia/Bangkok (WIB).
+
+Bahasa laporan AI baru mengikuti pilihan saat investigasi dimulai, termasuk investigasi otomatis dari deteksi baru dan investigasi lanjutan. Mengganti bahasa tampilan tidak mengganti bahasa run yang berjalan atau memanggil model. Laporan/sintesis dan catatan review lama tetap dalam bahasa asli, dengan penanda bahasa laporan. Label dan catatan standar serah terima diterjemahkan untuk tampilan; payload arsip serta hash tidak ditulis ulang. Untuk laporan baru dalam bahasa lain pada kasus lama, gunakan investigasi lanjutan dengan bahasa pilihan.
+
+Migrasi 000006 menambahkan report_language; klien API yang tidak mengirim properti tersebut tetap menggunakan id. Tidak ada layanan penerjemahan atau dependensi frontend tambahan.

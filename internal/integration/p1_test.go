@@ -44,7 +44,7 @@ func TestP1RulesAndEvidence(t *testing.T) {
 		t.Fatal(e)
 	}
 	// Upgrade a populated v3 dataset without inventing confirmations or closing invoices.
-	for _, file := range []string{"000005_shift_handovers.down.sql", "000004_p1_sources.down.sql"} {
+	for _, file := range []string{"000006_report_language.down.sql", "000005_shift_handovers.down.sql", "000004_p1_sources.down.sql"} {
 		down, err := os.ReadFile(filepath.Join("..", "store", "migrations", file))
 		if err != nil {
 			t.Fatal(err)
