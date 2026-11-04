@@ -31,3 +31,11 @@ TestSimulatedMetaHTTPBoundary di internal/integration/agent_boundary_test.go mem
 Runner diuji dengan model simulasi: maksimum dua retry sementara, satu repair respons invalid/truncated, tool tak dikenal/scope shift asing ditolak, deadline dihentikan, dan laporan dari satu domain menjadi insufficient_evidence tanpa rekomendasi. Panggilan HTTP simulasi tetap berlabel mock dalam database. Tes terarah ini lulus lokal pada 29 Oktober; tidak menghabiskan kredit Meta atau mengubah database daring. CI tetap menjalankan suite penuh pada head PR.
 
 Bukti rilis fungsional dan batas cakupan pengujian ada di RELEASE_READINESS.md. Uji simulasi bukan pembuktian seluruh perilaku provider nyata; pengujian Meta nyata sebelumnya dilaporkan terpisah.
+
+## Bilingual
+
+Integrasi menguji report_language ditolak jika unsupported, default id, deteksi otomatis en, run/follow-up, replay idempotensi dan konflik bila bahasa berubah, prompt tersimpan, laporan mock Inggris dan metadata pada snapshot baru. Upgrade database v5 terisi → v6 harus mempertahankan snapshot/hash lama dan nilai waktu pembuatan; perbandingan timestamp memakai nilai waktu, bukan bentuk offset zona waktu JSON. Fixture Inggris empat aturan P1 diuji agar referensi bukti tetap ada.
+
+Browser memeriksa login/error ID/EN, preferensi saat reload/logout, localStorage invalid/tidak tersedia, bahasa run yang tetap en saat UI diganti id, format IDR/menit/waktu, laporan/review, snapshot yang identik setelah toggle, cetak dan viewport ponsel. Pergantian bahasa saja tidak mengirim POST tambahan. Database browser lokal terpisah dari database integration reset; CI dan browser tetap mock eksplisit.
+
+Skenario browser non-autentikasi memakai fixture sesi operator per worker dalam memori; bilingual dan workflow tetap menguji login melalui UI. Ini menjaga batas lima login per menit tanpa melemahkan limiter produksi atau menyimpan cookie dalam berkas. Regresi serah terima menunda request riwayat dan penyusunan untuk memastikan versi pilihan tidak diambil alih respons lama atau respons shift lain. AbortSignal diteruskan ke fetch agar request baca yang dibatalkan tidak menimpa cache baru.

@@ -15,6 +15,14 @@ type Engine struct {
 }
 
 func (e Engine) Execute(ctx context.Context, shiftID string, asOf time.Time) ([]domain.Case, error) {
+	return e.ExecuteInLanguage(ctx, shiftID, asOf, "id")
+}
+
+func (e Engine) ExecuteInLanguage(ctx context.Context, shiftID string, asOf time.Time, language string) ([]domain.Case, error) {
+	language, err := domain.NormalizeReportLanguage(language)
+	if err != nil {
+		return nil, err
+	}
 	ids := []string{}
 	if shiftID != "" {
 		ids = append(ids, shiftID)
@@ -110,7 +118,7 @@ func (e Engine) Execute(ctx context.Context, shiftID string, asOf time.Time) ([]
 			cases = append(cases, advancedCases...)
 		}
 		for _, c := range cases {
-			saved, created, err := e.Store.InsertCase(ctx, c, e.Config.Mode)
+			saved, created, err := e.Store.InsertCaseWithLanguage(ctx, c, e.Config.Mode, language)
 			if err != nil {
 				return nil, err
 			}

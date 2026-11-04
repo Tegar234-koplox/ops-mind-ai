@@ -1,6 +1,6 @@
 # Handoff OpsMind AI
 
-Diperbarui 29 Oktober 2026. P0, P1, hover dan P2 serah terima shift selesai serta diverifikasi daring. Tahap aktif: kesiapan rilis, bukan modul bisnis baru. Baca juga .local/LAST_PROGRESS.md jika tersedia untuk hasil commit/CI/merge/deploy yang terjadi setelah checkpoint dokumen ini.
+Diperbarui 4 November 2026. P0, P1, hover, P2 dan kesiapan rilis PR #5 selesai. Bilingual UI dan laporan AI baru sudah diimplementasikan dan lolos regresi lokal; PR/CI, merge dan deployment tahap ini belum dinyatakan selesai. Baca juga .local/LAST_PROGRESS.md jika tersedia untuk hasil commit/CI/merge/deploy yang terjadi setelah checkpoint dokumen ini.
 
 ## Keputusan tetap
 
@@ -12,7 +12,7 @@ Diperbarui 29 Oktober 2026. P0, P1, hover dan P2 serah terima shift selesai sert
 - Tunai US$0; batas aplikasi US$20 (15 pengembangan/5 demo), maksimum US$0,25/run. Counter lokal dan daring bukan dua anggaran tambahan.
 - Demo/video/submission ditangani pengguna. Kredensial privat di .local/DEMO_ACCESS.md; jangan cetak atau upload.
 - Git: branch codex/ → commit atas nama pengguna → push branch → PR → squash merge setelah checks. Jangan push perubahan berikutnya ke main.
-- Author/contributor tetap Tegar Sang Putra / Tegar234-koplox, tanpa GPT/bot/Co-authored-by. Pengecualian committer teknis GitHub hanya diizinkan terpisah untuk PR #1–#4; bukan izin umum.
+- Author/contributor tetap Tegar Sang Putra / Tegar234-koplox, tanpa GPT/bot/Co-authored-by. Pengecualian committer teknis GitHub hanya diizinkan terpisah untuk PR #1–#5; bukan izin umum.
 
 ## Rilis fungsional terverifikasi
 
@@ -36,11 +36,11 @@ Golden A-20261026-S1: Rp1.380.000 vs baseline Rp1.000.000 (+38%), output 830/100
 - Laporan/bukti/review golden dan P1 tetap utuh setelah deployment P2. Browser daring memeriksa sintesis tersimpan, cetak, ponsel, penelusuran kasus dan nol pageerror.
 - CI P2 awal menemukan race pada reset mutasi saat pindah shift. Sudah diperbaiki pada head ca0593e: status pending dipertahankan, error dibatasi shift terkait dan cache riwayat diisi dari hasil baru. Tes request tertunda dan CI final lulus.
 
-## Kesiapan rilis yang sedang diselesaikan
+## Kesiapan rilis selesai dan bilingual aktif
 
 Branch codex/release-readiness dari b6eaf5b. Pengujian HTTP provider tambahan lulus lokal pada opsmind_release_test: retry 429/503, 401, timeout, JSON/usage rusak, truncation/filter, redirect, batas budget/payload, tool/scope asing serta bukti kurang. Seluruhnya HTTP simulasi berlabel mock; tidak menghubungi Meta nyata.
 
-README, diagram, [matriks bukti](RELEASE_READINESS.md), [persyaratan submission](SUBMISSION_REQUIREMENTS.md) dan atribusi dependensi diselaraskan dengan hasil nyata. Salinan lisensi disertakan dalam kemasan runtime. CI/merge/deploy perubahan tahap ini harus diverifikasi pada head PR-nya; belum diklaim selesai oleh checkpoint ini.
+README, diagram, [matriks bukti](RELEASE_READINESS.md), [persyaratan submission](SUBMISSION_REQUIREMENTS.md) dan atribusi dependensi diselaraskan dengan hasil nyata. Salinan lisensi disertakan dalam kemasan runtime. PR #5 sudah merge ke 1cbef4a82e6e2f4660c2ef84d55b42c4b8320bdd; CI main 40958094028 lulus dan deployment dep-dbhrmhm1egvs73bbj00g live. Laporan/bukti/review dan dua snapshot tetap utuh, tanpa panggilan Meta tambahan pada verifikasi rilis.
 
 Ringkasan peserta/onboarding menjadi persyaratan kerja: Indie Developer, pekerjaan baru 26 Oktober–4 November, public repo, video tiga menit dan submission Cerebral Valley. Halaman publik mengonfirmasi kategori/keluarga teknologi Meta/tenggat; pasal lengkap Official Rules/Event Waiver belum terbaca. Codex tidak dianggap mendapat persetujuan eksplisit panitia. Baca SUBMISSION_REQUIREMENTS sebelum submission.
 
@@ -56,6 +56,10 @@ Ringkasan peserta/onboarding menjadi persyaratan kerja: Indie Developer, pekerja
 
 ## Urutan lanjut
 
-Selesaikan PR/CI kesiapan rilis dan alur merge sesuai batas identitas; bila paket runtime berubah, deploy gratis dan periksa persistensi tanpa menambah panggilan Meta. Catat hasil akhir di .local/LAST_PROGRESS.md. Jangan mengulang seluruh tes tanpa perubahan/failure baru.
+Branch codex/bilingual menambahkan katalog UI, preferensi browser, migrasi report_language, prompt sesuai bahasa run dan kompatibilitas snapshot lama. Suite Go/PostgreSQL lengkap, build/format frontend serta enam tes browser mock lulus pada 4 November; tes Meta opsional sengaja di-skip. Integrasi memakai opsmind_bilingual_test, browser memakai opsmind_bilingual_browser_test. Regresi memeriksa bahasa run tetap, pergantian UI tanpa POST/model baru, hash/payload snapshot tetap, cetak, ponsel, review dan empat aturan P1.
+
+Tes non-autentikasi memakai sesi operator bersama per worker dalam memori agar tidak menghabiskan batas login aplikasi; tes bilingual dan workflow tetap menguji login UI. Batas login produksi tidak diubah. Request katalog/riwayat/detail serah terima menerima AbortSignal; pemilih versi menunggu mutasi selesai dan cache riwayat dapat diisi meskipun belum ada data sebelumnya.
+
+Langkah berikutnya: commit pengguna, push branch, PR/CI dan merge sesuai batas identitas; deploy gratis lalu periksa arsip serta satu investigasi Meta nyata Inggris dalam batas biaya. Belum ada panggilan Meta nyata untuk tahap bilingual. Izin committer teknis GitHub PR #1–#5 tidak berlaku untuk PR berikutnya. Catat hasil akhir di .local/LAST_PROGRESS.md. Jangan mengulang seluruh tes tanpa perubahan/failure baru.
 
 Setelah itu sisa utama milik pengguna: pemeriksaan rules/waiver final, video, akses juri dan submission. Target internal 4 November 2026 18.00 WIB; batas acara 5 November 09.00 WIB. Jangan otomatis membuka P3 atau modul tertunda.

@@ -1,12 +1,9 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './auth'
 test('P1 cases expose confirmed sources without changing golden', async ({ page }) => {
   test.skip(process.env.ENABLE_P1_RULES !== 'true', 'P1 dipilih eksplisit.')
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
   await page.goto('/')
-  await page.getByLabel('Nama pengguna').fill(process.env.OPERATOR_USERNAME || 'operator')
-  await page.getByLabel('Kata sandi', { exact: true }).fill(process.env.OPERATOR_PASSWORD!)
-  await page.getByRole('button', { name: 'Masuk', exact: true }).click()
   await expect(page.getByText('8 aturan aktif', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Jalankan deteksi', exact: true }).click()
   for (const rule of ['ATT-001', 'OT-002', 'COST-001', 'COST-002'])

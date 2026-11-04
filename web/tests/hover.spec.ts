@@ -1,4 +1,5 @@
-import { test, expect, type Locator, type Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
+import { test, expect } from './auth'
 
 async function expectHoverFeedback(page: Page, target: Locator) {
   await page.mouse.move(1400, 30)
@@ -12,9 +13,6 @@ async function expectHoverFeedback(page: Page, target: Locator) {
 
 test('hover, keyboard focus and navigation state remain consistent', async ({ page }) => {
   await page.goto('/')
-  await page.getByLabel('Nama pengguna').fill(process.env.OPERATOR_USERNAME || 'operator')
-  await page.getByLabel('Kata sandi', { exact: true }).fill(process.env.OPERATOR_PASSWORD!)
-  await page.getByRole('button', { name: 'Masuk', exact: true }).click()
   await page.getByRole('button', { name: 'Jalankan deteksi', exact: true }).click()
   await page.locator('.case-item').filter({ hasText: 'OT-001' }).click()
   await expect(page.getByRole('button', { name: 'Buka laporan bukti' })).toBeVisible({

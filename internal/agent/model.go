@@ -212,6 +212,9 @@ func (MockModel) Complete(ctx context.Context, run domain.Run, messages []Messag
 		report.InformationGaps = []string{"Penjelasan supervisor dan verifikasi konteks operasional diperlukan."}
 		report.Recommendations = []domain.ProposedAction{{Title: "Tinjau sumber dan konfirmasi konteks kasus " + rule, Rationale: "Gunakan bukti tersimpan sebelum membuat keputusan operasional; review ini tidak mengubah data bisnis.", EvidenceIDs: ids, Department: "Operasi"}}
 	}
+	if run.ReportLanguage == "en" {
+		englishMockReport(&report, rule, ids)
+	}
 	return Message{Role: "assistant", Content: string(store.JSON(report))}, nil
 }
 

@@ -180,6 +180,7 @@ func (s *Store) handoverCases(ctx context.Context, id string) ([]domain.Handover
 			return nil, err
 		}
 		item.RunID, item.RunStatus, item.ModelMode = run.ID, run.Status, run.Mode
+		item.ReportLanguage = run.ReportLanguage
 		if run.Report != nil {
 			item.Synthesis = run.Report.Summary
 		}

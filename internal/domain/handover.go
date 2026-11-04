@@ -42,6 +42,7 @@ type HandoverCase struct {
 	RunID           string                `json:"run_id,omitempty"`
 	RunStatus       string                `json:"run_status,omitempty"`
 	ModelMode       string                `json:"model_mode,omitempty"`
+	ReportLanguage  string                `json:"report_language,omitempty"`
 	Synthesis       string                `json:"synthesis,omitempty"`
 	Recommendations []Recommendation      `json:"recommendations"`
 	Evidence        []HandoverEvidenceRef `json:"evidence"`

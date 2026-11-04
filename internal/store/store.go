@@ -128,12 +128,12 @@ func (s *Store) Cases(ctx context.Context, limit, offset int, status, severity s
 	return out, total, rows.Err()
 }
 
-const runCols = "id,case_id,status,mode,instruction,error,checkpoint,report,created_at,started_at,finished_at,model_rounds,tool_calls,(SELECT coalesce(sum(input_tokens),0) FROM budget_reservations b WHERE b.run_id=r.id),(SELECT coalesce(sum(output_tokens),0) FROM budget_reservations b WHERE b.run_id=r.id),(SELECT coalesce(sum(coalesce(actual_micros,reserved_micros)),0) FROM budget_reservations b WHERE b.run_id=r.id)"
+const runCols = "id,case_id,status,mode,instruction,error,checkpoint,report,created_at,started_at,finished_at,model_rounds,tool_calls,(SELECT coalesce(sum(input_tokens),0) FROM budget_reservations b WHERE b.run_id=r.id),(SELECT coalesce(sum(output_tokens),0) FROM budget_reservations b WHERE b.run_id=r.id),(SELECT coalesce(sum(coalesce(actual_micros,reserved_micros)),0) FROM budget_reservations b WHERE b.run_id=r.id),r.report_language"
 
 func scanRun(row pgx.Row) (domain.Run, error) {
 	var r domain.Run
 	var raw []byte
-	e := row.Scan(&r.ID, &r.CaseID, &r.Status, &r.Mode, &r.Instruction, &r.Error, &r.Checkpoint, &raw, &r.CreatedAt, &r.StartedAt, &r.FinishedAt, &r.ModelRounds, &r.ToolCalls, &r.InputTokens, &r.OutputTokens, &r.CostMicros)
+	e := row.Scan(&r.ID, &r.CaseID, &r.Status, &r.Mode, &r.Instruction, &r.Error, &r.Checkpoint, &raw, &r.CreatedAt, &r.StartedAt, &r.FinishedAt, &r.ModelRounds, &r.ToolCalls, &r.InputTokens, &r.OutputTokens, &r.CostMicros, &r.ReportLanguage)
 	if e != nil {
 		return r, normalize(e)
 	}

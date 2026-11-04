@@ -50,6 +50,7 @@ export type Run = {
   status: string
   mode: 'meta' | 'mock'
   instruction: string
+  report_language?: 'id' | 'en'
   error?: string
   report?: Report
   model_rounds: number

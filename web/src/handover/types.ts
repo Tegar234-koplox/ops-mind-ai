@@ -26,6 +26,7 @@ export type HandoverCase = {
   explanation: string
   run_id?: string
   run_status?: string
+  report_language?: 'id' | 'en'
   model_mode?: string
   synthesis?: string
   recommendations: Recommendation[]

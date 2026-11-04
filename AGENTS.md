@@ -7,6 +7,7 @@ Sebelum mengubah proyek, baca docs/HANDOFF.md, docs/ARCHITECTURE.md dan docs/IMP
 - Arsitektur telah disetujui: monolit modular Go, PostgreSQL, React/TypeScript, Meta Model API. Jangan meminta persetujuan arsitektur ulang.
 - P0 hanya OT-001, PROD-001, ATT-002, MAINT-001 dan golden investigation lengkap. Pengguna mengaktifkan pengerjaan P1 pada 28 Oktober 2026: ATT-001, OT-002, COST-001, COST-002. Modul lanjutan lain tetap ditunda. Demo dan video ditangani pengguna sendiri.
 - P2 dipilih eksplisit pengguna: laporan serah terima shift saja. Pakai fakta Go dan investigasi/review tersimpan, snapshot immutable, tanpa panggilan model tambahan, pengiriman otomatis atau perubahan data operasional. Procurement, warehouse, quality control dan predictive maintenance tetap ditunda.
+- Pengguna mengaktifkan bilingual Indonesia/Inggris pada 30 Oktober 2026 untuk tampilan dan laporan AI baru. Bahasa run disimpan saat enqueue; laporan/bukti/review lama tetap arsip asli, tanpa panggilan penerjemahan tambahan.
 - Jangan menambah microservices, Kafka, Kubernetes, Python service, ERP, multi-fasilitas, registrasi publik atau fitur di luar plan.
 - Semua data manufaktur sintetis. Empat attendance pending bukan bukti mangkir; cuti disetujui harus dikecualikan. Korelasi bukan pembuktian sebab.
 - Fakta dan uang dihitung Go; model hanya melalui tool baca yang diizinkan. Review mencatat keputusan tanpa menulis data bisnis.
