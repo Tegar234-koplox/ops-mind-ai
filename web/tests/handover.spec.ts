@@ -6,9 +6,11 @@ test('shift handover preserves versions, facts and printable review context', as
   await page.goto('/')
   await page.getByRole('button', { name: 'Jalankan deteksi', exact: true }).click()
   await page.locator('.case-item').filter({ hasText: 'OT-001' }).click()
-  await expect(page.getByRole('button', { name: 'Buka laporan bukti' })).toBeVisible({
-    timeout: 30000,
-  })
+  await expect(page.getByRole('tab', { name: /Laporan bukti/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+    { timeout: 30000 },
+  )
   await page.getByRole('button', { name: 'Serah terima shift', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Serah terima shift.' })).toBeVisible()
   await page.getByLabel('Lini produksi', { exact: true }).selectOption('A')

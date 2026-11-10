@@ -41,6 +41,12 @@ Set-Location ..
 
 `-Mock` explicitly selects simulation for that process; the `.env` file can still use the Meta default. If the local configuration was generated automatically, the random password is available only in `.env`. Do not upload that file. For real Meta calls, run without `-Mock` after filling in the key. CLI: `serve`, `migrate`, `seed`, `seed-p1`, `detect`, `hash-password`. The CLI reads the environment; the PowerShell scripts load `.env` without evaluating its contents as code.
 
+## Investigating a case
+
+Use **Cases** to select an anomaly. Investigation, evidence, and human review are stages of that selected case. A completed investigation opens its stored evidence report, with the review status and next action above the tabs. The investigation timeline remains available under **Live investigation** and can be expanded when needed. Each recommendation links directly to its supporting evidence.
+
+On phones, selecting a case opens its details. **Back to cases** restores the previous search and list position. Detection keeps its visible text label. **Shift handover** remains a separate workspace; opening reports or moving between stages does not start a new model call.
+
 ## Golden scenario
 
 Assembly Line A, S1, 26 October 2026: overtime cost Rp1,380,000 against a Rp1,000,000 baseline (+38%); output 830/1000 (-17%); 38 assignments = 31 verified present + 3 approved leave + 4 pending; union downtime 110 minutes. Seed 20261027, 150 workers, 3 lines, 8 machines, 60 calendar dates. Fixture evaluation time: 27 October 2026 06:15 WIB; this is not today's live data. Ground truth lives in `eval/` and is not read by the runtime or the model.

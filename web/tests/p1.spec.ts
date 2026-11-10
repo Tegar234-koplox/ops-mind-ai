@@ -14,10 +14,11 @@ test('P1 cases expose confirmed sources without changing golden', async ({ page 
   ).toBeVisible()
   const start = page.getByRole('button', { name: 'Mulai investigasi', exact: true })
   if (await start.isVisible()) await start.click()
-  await expect(page.getByRole('button', { name: 'Buka laporan bukti' })).toBeVisible({
-    timeout: 30000,
-  })
-  await page.getByRole('button', { name: 'Buka laporan bukti' }).click()
+  await expect(page.getByRole('tab', { name: /Laporan bukti/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+    { timeout: 30000 },
+  )
   const attendance = page.locator('.evidence-card').filter({ hasText: 'Rekonsiliasi kehadiran' })
   await expect(attendance).toContainText('Pekerja dengan rangkaian absen')
   await expect(attendance).toContainText('Shift berturut-turut')

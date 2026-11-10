@@ -37,9 +37,11 @@ test('language preference, English investigation and immutable handover work tog
   expect(detection.request().postDataJSON().report_language).toBe('en')
   await page.locator('.case-item').filter({ hasText: 'OT-001' }).click()
   await page.getByTestId('language-picker').selectOption('id')
-  await expect(page.getByRole('button', { name: 'Buka laporan bukti' })).toBeVisible({
-    timeout: 30000,
-  })
+  await expect(page.getByRole('tab', { name: /Laporan bukti/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+    { timeout: 30000 },
+  )
   const cases = await page.request.get('/api/v1/cases?limit=100').then((r) => r.json())
   const primary = cases.items.find(
     (item: { rule_id: string; shift_id: string }) =>
@@ -47,7 +49,6 @@ test('language preference, English investigation and immutable handover work tog
   )
   const detail = await page.request.get('/api/v1/cases/' + primary.id).then((r) => r.json())
   expect(detail.latest_run.report_language).toBe('en')
-  await page.getByRole('button', { name: 'Buka laporan bukti' }).click()
   await expect(page.locator('.report-intro p')).toContainText('SIMULATION:')
   await expect(page.locator('.report-intro p')).toHaveAttribute('lang', 'en')
   const beforeToggle = writes.length

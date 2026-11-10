@@ -12,11 +12,12 @@ test('operator investigates evidence, reviews and follows up', async ({ page }) 
   await page.locator('.case-item').filter({ hasText: 'OT-001' }).click()
   if (await page.getByRole('button', { name: 'Mulai investigasi', exact: true }).isVisible())
     await page.getByRole('button', { name: 'Mulai investigasi', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Buka laporan bukti' })).toBeVisible({
-    timeout: 30000,
-  })
+  await expect(page.getByRole('tab', { name: /Laporan bukti/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+    { timeout: 30000 },
+  )
   await expect(page.locator('.case-numbers')).toContainText('38%')
-  await page.getByRole('button', { name: 'Buka laporan bukti' }).click()
   await expect(page.getByRole('heading', { name: 'Observasi dari catatan sumber' })).toBeVisible()
   const staffing = page.locator('.evidence-card').filter({ hasText: 'Ketersediaan operator' })
   await expect(staffing).toContainText('31')
@@ -51,9 +52,11 @@ test('operator investigates evidence, reviews and follows up', async ({ page }) 
     .getByLabel('Instruksi investigasi lanjutan')
     .fill('Periksa kembali bukti downtime tanpa menyimpulkan kausalitas.')
   await page.getByRole('button', { name: 'Investigasi lanjutan', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Buka laporan bukti' })).toBeVisible({
-    timeout: 30000,
-  })
+  await expect(page.getByRole('tab', { name: /Laporan bukti/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+    { timeout: 30000 },
+  )
   await page.getByRole('tab', { name: '02 Laporan bukti' }).click()
   await page.setViewportSize({ width: 390, height: 844 })
   await expect(page.getByRole('heading', { name: 'Observasi dari catatan sumber' })).toBeVisible()

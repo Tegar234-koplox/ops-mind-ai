@@ -1,5 +1,19 @@
 // Indonesian source messages are stable keys; dynamic source records use sourceText.
 export const english = {
+  Kasus: 'Cases',
+  'Detail kasus': 'Case details',
+  'Kembali ke daftar kasus': 'Back to cases',
+  'Investigasi selesai — menunggu review': 'Investigation completed — review required',
+  'Investigasi selesai': 'Investigation completed',
+  'Review selesai': 'Review completed',
+  'rekomendasi menunggu keputusan Anda.': 'recommendations await your decision.',
+  'Laporan dan bukti tersimpan siap ditelusuri.':
+    'The stored report and evidence are ready to inspect.',
+  'Lihat hasil review': 'View review decisions',
+  'Bukti pendukung rekomendasi': 'Supporting evidence for this recommendation',
+  'Bukti belum cukup untuk mengambil keputusan.':
+    'There is not enough evidence to make a decision.',
+  'Tinjau proses investigasi': 'Inspect the investigation process',
   'Memuat data…': 'Loading data…',
   'Menghubungkan ruang investigasi…': 'Connecting to the investigation workspace…',
   'Coba lagi': 'Try again',

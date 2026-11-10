@@ -10,10 +10,11 @@ test('real Meta report is inspectable and recommendation review is persisted', a
   await page.getByRole('button', { name: 'Masuk', exact: true }).click()
   await expect(page.getByText('META AI', { exact: true })).toBeVisible()
   await page.locator('.case-item').filter({ hasText: 'OT-001' }).click()
-  await expect(page.getByRole('button', { name: 'Buka laporan bukti' })).toBeVisible({
-    timeout: 30000,
-  })
-  await page.getByRole('button', { name: 'Buka laporan bukti' }).click()
+  await expect(page.getByRole('tab', { name: /Laporan bukti/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+    { timeout: 30000 },
+  )
   await expect(page.getByRole('heading', { name: 'Observasi dari catatan sumber' })).toBeVisible()
   await expect(page.locator('.report-intro')).not.toContainText('SIMULASI')
   await expect(page.locator('.evidence-card').filter({ hasText: 'Interupsi mesin' })).toContainText(

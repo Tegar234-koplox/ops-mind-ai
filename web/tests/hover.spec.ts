@@ -15,11 +15,14 @@ test('hover, keyboard focus and navigation state remain consistent', async ({ pa
   await page.goto('/')
   await page.getByRole('button', { name: 'Jalankan deteksi', exact: true }).click()
   await page.locator('.case-item').filter({ hasText: 'OT-001' }).click()
-  await expect(page.getByRole('button', { name: 'Buka laporan bukti' })).toBeVisible({
-    timeout: 30000,
-  })
+  await expect(page.getByRole('tab', { name: /Laporan bukti/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+    { timeout: 30000 },
+  )
 
-  const reportNav = page.getByRole('navigation').getByRole('button', { name: 'Laporan bukti' })
+  const reportNav = page.getByRole('navigation').getByRole('button', { name: /^Kasus/ })
+  await expect(page.getByRole('navigation').getByRole('button')).toHaveCount(2)
   await expectHoverFeedback(page, reportNav)
   await expectHoverFeedback(page, page.getByRole('tab', { name: /Laporan bukti/ }))
   await expectHoverFeedback(page, page.locator('.case-item.active'))
@@ -29,7 +32,9 @@ test('hover, keyboard focus and navigation state remain consistent', async ({ pa
     page.getByRole('button', { name: 'Jalankan deteksi', exact: true }),
   )
 
-  await reportNav.click()
+  await page.getByRole('tab', { name: /Investigasi langsung/ }).click()
+  await expect(page.locator('.process-details')).not.toHaveAttribute('open')
+  await page.getByRole('tab', { name: /Laporan bukti/ }).click()
   await expect(reportNav).toHaveAttribute('aria-current', 'page')
   await expect(page.getByRole('navigation').locator('[aria-current="page"]')).toHaveCount(1)
   await expect(page.getByRole('tab', { name: /Laporan bukti/ })).toHaveAttribute(

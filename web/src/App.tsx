@@ -1,9 +1,10 @@
 import type { Locale } from './i18n/format'
 import { useI18n, LanguagePicker, ReportLanguage } from './i18n/context'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Activity,
+  ArrowLeft,
   ArrowRight,
   Bell,
   Check,
@@ -27,6 +28,7 @@ import { Badge, Busy, Empty, ErrorMessage, EvidenceCard, EvidenceDialog } from '
 import { HandoverWorkspace } from './handover/Workspace'
 import type { Case, CaseDetail, Evidence, Overview, Run, RunDetail } from './types'
 type Session = { username: string; model_mode: string }
+type CaseTab = 'live' | 'report' | 'review'
 export default function App() {
   const { t } = useI18n()
 
@@ -184,13 +186,18 @@ function Workspace({ session }: { session: Session }) {
     [view, setView] = useState<'investigations' | 'handover'>('investigations'),
     [selected, setSelected] = useState(''),
     [search, setSearch] = useState(''),
-    [tab, setTab] = useState('live'),
+    [tabChoice, setTabChoice] = useState<{
+      caseID: string
+      runID?: string
+      tab: CaseTab
+    }>(),
+    [mobileDetail, setMobileDetail] = useState(false),
     [openEvidence, setOpenEvidence] = useState<Evidence | null>(null),
     [error, setError] = useState<Error | null>(null)
-  function openTab(next: string) {
-    setView('investigations')
-    setTab(next)
-  }
+  const casePanel = useRef<HTMLDivElement>(null)
+  const inbox = useRef<HTMLDivElement>(null)
+  const listScroll = useRef(0)
+  const returningToList = useRef(false)
   const overview = useQuery({
     queryKey: ['overview'],
     queryFn: () => api<Overview>('/overview'),
@@ -211,6 +218,41 @@ function Workspace({ session }: { session: Session }) {
     refetchInterval: (q) => (active(q.state.data?.latest_run?.status) ? 3000 : false),
   })
   const runID = detail.data?.latest_run?.id
+  const tab =
+    tabChoice && tabChoice.caseID === caseID && tabChoice.runID === runID
+      ? tabChoice.tab
+      : detail.data?.latest_run?.report
+        ? 'report'
+        : 'live'
+  function openTab(next: CaseTab) {
+    if (caseID) setTabChoice({ caseID, runID, tab: next })
+  }
+  function openCase(id: string) {
+    if (window.matchMedia('(max-width: 640px)').matches && !mobileDetail)
+      listScroll.current = window.scrollY
+    setSelected(id)
+    setTabChoice(undefined)
+    setMobileDetail(true)
+    setView('investigations')
+  }
+  function showCases() {
+    returningToList.current = mobileDetail && window.matchMedia('(max-width: 640px)').matches
+    setMobileDetail(false)
+    setView('investigations')
+  }
+  useEffect(() => {
+    if (view !== 'investigations' || !window.matchMedia('(max-width: 640px)').matches) return
+    if (mobileDetail) {
+      casePanel.current?.focus({ preventScroll: true })
+      casePanel.current?.scrollIntoView({ block: 'start' })
+    } else if (returningToList.current) {
+      returningToList.current = false
+      window.scrollTo(0, listScroll.current)
+      inbox.current
+        ?.querySelector<HTMLButtonElement>('.case-item.active')
+        ?.focus({ preventScroll: true })
+    }
+  }, [caseID, mobileDetail, view])
   const investigation = useQuery({
     queryKey: ['run', runID],
     queryFn: () => api<RunDetail>('/investigations/' + runID),
@@ -252,7 +294,7 @@ function Workspace({ session }: { session: Session }) {
         previous ? { ...previous, latest_run: run, recommendations: [] } : previous,
       )
       client.setQueryData<RunDetail>(['run', run.id], { run, evidence: [], events: [] })
-      if (caseID === run.case_id) setTab('live')
+      if (caseID === run.case_id) setTabChoice(undefined)
       setError(null)
       invalidate()
     },
@@ -278,39 +320,27 @@ function Workspace({ session }: { session: Session }) {
         .toLowerCase()
         .includes(search.toLowerCase()),
     )
+  const latest = detail.data?.latest_run
+  const recommendations = detail.data?.recommendations.filter((rec) => rec.run_id === runID) ?? []
+  const pendingReviews = recommendations.filter((rec) => !rec.decision).length
   return (
-    <div className={'app-shell' + (view === 'handover' ? ' is-handover' : '')}>
+    <div
+      className={
+        'app-shell' +
+        (view === 'handover' ? ' is-handover' : '') +
+        (mobileDetail ? ' case-detail-open' : '')
+      }
+    >
       <aside className="sidebar">
         <Brand />
         <div className="workspace-label">{t('RUANG KERJA')}</div>
         <nav aria-label={t('Navigasi utama')}>
           <button
-            className={
-              'nav-item' + (view === 'investigations' && tab === 'live' ? ' selected' : '')
-            }
-            aria-current={view === 'investigations' && tab === 'live' ? 'page' : undefined}
-            onClick={() => openTab('live')}
+            className={'nav-item' + (view === 'investigations' ? ' selected' : '')}
+            aria-current={view === 'investigations' ? 'page' : undefined}
+            onClick={showCases}
           >
-            <LayoutList size={18} /> {t('Investigasi')} <span>{data?.cases ?? 0}</span>
-          </button>
-          <button
-            className={
-              'nav-item' + (view === 'investigations' && tab === 'report' ? ' selected' : '')
-            }
-            aria-current={view === 'investigations' && tab === 'report' ? 'page' : undefined}
-            onClick={() => openTab('report')}
-          >
-            <Layers3 size={18} />
-            {t('Laporan bukti')}
-          </button>
-          <button
-            className={
-              'nav-item' + (view === 'investigations' && tab === 'review' ? ' selected' : '')
-            }
-            aria-current={view === 'investigations' && tab === 'review' ? 'page' : undefined}
-            onClick={() => openTab('review')}
-          >
-            <ShieldCheck size={18} /> {t('Review manusia')} <i className="nav-dot" />
+            <LayoutList size={18} /> {t('Kasus')} <span>{data?.cases ?? 0}</span>
           </button>
           <button
             className={'nav-item' + (view === 'handover' ? ' selected' : '')}
@@ -342,7 +372,7 @@ function Workspace({ session }: { session: Session }) {
           <div className="breadcrumb">
             {t('Operasional')}
             <ChevronRight size={13} />
-            <strong>{view === 'handover' ? t('Serah terima shift') : t('Investigasi')}</strong>
+            <strong>{view === 'handover' ? t('Serah terima shift') : t('Kasus')}</strong>
           </div>
           <div className="operator">
             <LanguagePicker />
@@ -369,9 +399,9 @@ function Workspace({ session }: { session: Session }) {
             <button
               className="secondary"
               aria-pressed={view === 'investigations'}
-              onClick={() => setView('investigations')}
+              onClick={showCases}
             >
-              {t('Ruang investigasi')}
+              {t('Kasus')}
             </button>
             <button
               className="secondary"
@@ -382,15 +412,10 @@ function Workspace({ session }: { session: Session }) {
             </button>
           </div>
           {view === 'handover' ? (
-            <HandoverWorkspace
-              onOpenCase={(id) => {
-                setSelected(id)
-                openTab('live')
-              }}
-            />
+            <HandoverWorkspace onOpenCase={openCase} />
           ) : (
             <>
-              <div className="page-heading">
+              <div className="page-heading case-overview">
                 <div>
                   <span className="eyebrow">{t('INTELIJEN OPERASIONAL')}</span>
                   <h1>
@@ -422,7 +447,7 @@ function Workspace({ session }: { session: Session }) {
               </div>
               {error ? <ErrorMessage message={error} /> : null}
               {overview.error ? <ErrorMessage message={overview.error} /> : null}
-              <section className="stat-grid" aria-label={t('Status workspace')}>
+              <section className="stat-grid case-overview" aria-label={t('Status workspace')}>
                 <Stat
                   label={t('Kasus terdeteksi')}
                   value={data?.cases}
@@ -451,7 +476,7 @@ function Workspace({ session }: { session: Session }) {
                 />
               </section>
               <section className="investigation-workspace">
-                <div className="inbox">
+                <div className="inbox" ref={inbox}>
                   <div className="panel-heading">
                     <h2>
                       {t('Inbox kasus')}
@@ -478,10 +503,8 @@ function Workspace({ session }: { session: Session }) {
                         <button
                           key={c.id}
                           className={'case-item ' + (c.id === caseID ? 'active' : '')}
-                          onClick={() => {
-                            setSelected(c.id)
-                            setTab('live')
-                          }}
+                          aria-pressed={c.id === caseID}
+                          onClick={() => openCase(c.id)}
                         >
                           <div className="case-item-top">
                             <span className={'case-rule ' + c.severity}>{c.rule_id}</span>
@@ -512,7 +535,16 @@ function Workspace({ session }: { session: Session }) {
                     {t('Seluruh catatan adalah data sintetis')}
                   </div>
                 </div>
-                <div className="case-panel">
+                <div
+                  className="case-panel"
+                  ref={casePanel}
+                  tabIndex={-1}
+                  role="region"
+                  aria-label={t('Detail kasus')}
+                >
+                  <button className="secondary back-to-cases" onClick={showCases}>
+                    <ArrowLeft size={16} /> {t('Kembali ke daftar kasus')}
+                  </button>
                   {!caseID ? (
                     <Empty title={t('Mulai dari satu pertanyaan')}>
                       <p>
@@ -554,20 +586,76 @@ function Workspace({ session }: { session: Session }) {
                           </div>
                         ))}
                       </div>
+                      {latest?.report ? (
+                        <div className="case-next-step">
+                          <div>
+                            <strong>
+                              {latest.status === 'insufficient_evidence'
+                                ? stateLabel[latest.status]
+                                : pendingReviews
+                                  ? t('Investigasi selesai — menunggu review')
+                                  : recommendations.length
+                                    ? t('Review selesai')
+                                    : t('Investigasi selesai')}
+                            </strong>
+                            <p>
+                              {latest.status === 'insufficient_evidence'
+                                ? t('Bukti belum cukup untuk mengambil keputusan.')
+                                : pendingReviews
+                                  ? pendingReviews + ' ' + t('rekomendasi menunggu keputusan Anda.')
+                                  : t('Laporan dan bukti tersimpan siap ditelusuri.')}
+                            </p>
+                          </div>
+                          {tab !== 'report' ? (
+                            <button className="secondary" onClick={() => openTab('report')}>
+                              {t('Buka laporan bukti')} <ArrowRight size={16} />
+                            </button>
+                          ) : recommendations.length ? (
+                            <button className="primary" onClick={() => openTab('review')}>
+                              {pendingReviews ? t('Tinjau rekomendasi') : t('Lihat hasil review')}{' '}
+                              <ArrowRight size={16} />
+                            </button>
+                          ) : latest.status === 'insufficient_evidence' ? (
+                            <button className="secondary" onClick={() => openTab('live')}>
+                              {t('Tinjau proses investigasi')}
+                            </button>
+                          ) : null}
+                        </div>
+                      ) : null}
                       <div className="tabs" role="tablist" aria-label={t('Tahap investigasi')}>
-                        {[
-                          ['live', t('Investigasi langsung')],
-                          ['report', t('Laporan bukti')],
-                          ['review', t('Review manusia')],
-                        ].map(([id, label], i) => (
+                        {(
+                          [
+                            ['live', t('Investigasi langsung')],
+                            ['report', t('Laporan bukti')],
+                            ['review', t('Review manusia')],
+                          ] as const
+                        ).map(([id, label], i) => (
                           <button
                             role="tab"
                             id={'tab-' + id}
                             aria-controls="investigation-panel"
                             aria-selected={tab === id}
+                            tabIndex={tab === id ? 0 : -1}
                             key={id}
                             className={tab === id ? 'selected' : ''}
-                            onClick={() => setTab(id)}
+                            onClick={() => openTab(id)}
+                            onKeyDown={(event) => {
+                              const tabs: CaseTab[] = ['live', 'report', 'review']
+                              const next =
+                                event.key === 'ArrowRight'
+                                  ? (i + 1) % 3
+                                  : event.key === 'ArrowLeft'
+                                    ? (i + 2) % 3
+                                    : event.key === 'Home'
+                                      ? 0
+                                      : event.key === 'End'
+                                        ? 2
+                                        : -1
+                              if (next < 0) return
+                              event.preventDefault()
+                              openTab(tabs[next])
+                              document.getElementById('tab-' + tabs[next])?.focus()
+                            }}
                           >
                             <span>0{i + 1}</span>
                             {label}
@@ -583,7 +671,9 @@ function Workspace({ session }: { session: Session }) {
                         {investigation.error ? (
                           <ErrorMessage message={investigation.error} />
                         ) : null}
-                        {tab === 'live' ? (
+                        {runID && investigation.isPending ? (
+                          <Busy />
+                        ) : tab === 'live' ? (
                           <Live
                             detail={investigation.data}
                             latest={detail.data.latest_run}
@@ -591,14 +681,9 @@ function Workspace({ session }: { session: Session }) {
                             starting={start.isPending}
                             onCancel={() => cancel.mutate()}
                             cancelling={cancel.isPending}
-                            onReport={() => setTab('report')}
                           />
                         ) : tab === 'report' ? (
-                          <ReportPanel
-                            detail={investigation.data}
-                            onOpen={setOpenEvidence}
-                            onReview={() => setTab('review')}
-                          />
+                          <ReportPanel detail={investigation.data} onOpen={setOpenEvidence} />
                         ) : (
                           <ReviewPanel
                             detail={detail.data}
@@ -607,6 +692,8 @@ function Workspace({ session }: { session: Session }) {
                               start.mutate({ instruction, language: locale })
                             }
                             busy={start.isPending}
+                            evidence={investigation.data?.evidence ?? []}
+                            onOpen={setOpenEvidence}
                           />
                         )}
                       </div>
@@ -660,7 +747,6 @@ function Live({
   starting,
   onCancel,
   cancelling,
-  onReport,
 }: {
   detail?: RunDetail
   latest: Run | null
@@ -668,7 +754,6 @@ function Live({
   starting: boolean
   onCancel: () => void
   cancelling: boolean
-  onReport: () => void
 }) {
   const { t, sourceText, stateLabel, timestamp } = useI18n()
 
@@ -712,40 +797,35 @@ function Live({
           )
         })}
       </div>
-      <div className="section-heading">
-        <h3>{t('Jejak investigasi')}</h3>
+      <details className="process-details" open={active(run.status)}>
+        <summary>{t('Jejak investigasi')}</summary>
         <span className="muted">
           {active(run.status) ? t('SSE · polling cadangan') : t('Tersimpan di PostgreSQL')}
         </span>
-      </div>
-      <ol className="timeline">
-        {detail?.events.map((event) => (
-          <li key={event.id}>
-            <span className={'timeline-dot ' + event.kind} />
-            <div>
-              <strong>{sourceText(event.message)}</strong>
-              <small>{timestamp(event.created_at)}</small>
-            </div>
-            {event.kind === 'evidence_collected' ? <ShieldCheck size={14} /> : null}
-          </li>
-        ))}
-      </ol>
+        <ol className="timeline">
+          {detail?.events.map((event) => (
+            <li key={event.id}>
+              <span className={'timeline-dot ' + event.kind} />
+              <div>
+                <strong>{sourceText(event.message)}</strong>
+                <small>{timestamp(event.created_at)}</small>
+              </div>
+              {event.kind === 'evidence_collected' ? <ShieldCheck size={14} /> : null}
+            </li>
+          ))}
+        </ol>
+      </details>
       <div className="run-actions">
         {active(run.status) ? (
           <button className="secondary" onClick={onCancel} disabled={cancelling}>
             <Square size={13} />
             {t('Batalkan investigasi')}
           </button>
-        ) : run.report ? (
-          <button className="primary" onClick={onReport}>
-            {t('Buka laporan bukti')}
-            <ArrowRight size={16} />
-          </button>
-        ) : (
+        ) : !run.report ? (
           <button className="secondary" onClick={onStart} disabled={starting}>
             {t('Investigasi ulang')}
           </button>
-        )}
+        ) : null}
         <span className="muted">
           {t('Pemakaian tercatat: US$') + (run.cost_micros / 1e6).toFixed(4)}
         </span>
@@ -753,15 +833,7 @@ function Live({
     </>
   )
 }
-function ReportPanel({
-  detail,
-  onOpen,
-  onReview,
-}: {
-  detail?: RunDetail
-  onOpen: (e: Evidence) => void
-  onReview: () => void
-}) {
+function ReportPanel({ detail, onOpen }: { detail?: RunDetail; onOpen: (e: Evidence) => void }) {
   const { t, toolLabel } = useI18n()
 
   if (!detail?.run.report)
@@ -838,12 +910,6 @@ function ReportPanel({
           ))}
         </ul>
       </div>
-      {detail.run.status === 'succeeded' ? (
-        <button className="primary" onClick={onReview}>
-          {t('Tinjau rekomendasi')}
-          <ArrowRight size={16} />
-        </button>
-      ) : null}
     </>
   )
 }
@@ -852,13 +918,17 @@ function ReviewPanel({
   onChanged,
   onFollowup,
   busy,
+  evidence,
+  onOpen,
 }: {
   detail: CaseDetail
   onChanged: () => void
   onFollowup: (instruction: string) => void
   busy: boolean
+  evidence: Evidence[]
+  onOpen: (e: Evidence) => void
 }) {
-  const { t, sourceText, stateLabel, timestamp } = useI18n()
+  const { t, sourceText, stateLabel, timestamp, toolLabel } = useI18n()
 
   const [reasons, setReasons] = useState<Record<string, string>>({}),
     [instruction, setInstruction] = useState('')
@@ -906,6 +976,17 @@ function ReviewPanel({
             <small className="muted">
               {rec.evidence_ids.length} {t('bukti pendukung · run')} {rec.run_id.slice(0, 8)}
             </small>
+            <div className="evidence-links" aria-label={t('Bukti pendukung rekomendasi')}>
+              {rec.evidence_ids.map((id) => {
+                const item = evidence.find((e) => e.id === id && e.run_id === rec.run_id)
+                return item ? (
+                  <button key={id} onClick={() => onOpen(item)}>
+                    <Layers3 size={14} />
+                    {toolLabel[item.tool] ?? item.tool}
+                  </button>
+                ) : null
+              })}
+            </div>
             {rec.decision ? (
               <div className="review-record">
                 <Check size={14} />
