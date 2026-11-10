@@ -1,6 +1,17 @@
 # Kesiapan rilis OpsMind AI
 
-Checkpoint: 29 Oktober 2026. Rilis fungsional yang sudah diverifikasi: [b6eaf5b, hasil PR #4](https://github.com/Tegar234-koplox/ops-mind-ai/pull/4). Tahap kesiapan rilis menambah pengujian kegagalan provider, dokumen dan atribusi paket; hasil CI untuk perubahan tersebut harus dilihat pada PR/head terkait.
+Checkpoint diperbarui 10 November 2026. Matriks awal di bawah mencatat rilis fungsional [b6eaf5b, hasil PR #4](https://github.com/Tegar234-koplox/ops-mind-ai/pull/4). Kesiapan rilis masuk melalui PR #5, bilingual melalui PR #6, dan README Inggris melalui PR #7. Status bilingual dan batas verifikasi terbaru dicatat terpisah agar laporan historis tidak disamakan dengan pemeriksaan demo langsung saat ini.
+
+## Checkpoint bilingual
+
+- PR #6 sudah merge menjadi `6f4a52e19151c260b9975350bf652aaba8979784`; PR #7 menjadi HEAD main `3d02dc11be5ddde973423da869f21aceb2f09634` saat pemeriksaan awal. Riwayat Git, origin HEAD dan halaman PR diperiksa pada 10 November.
+- Halaman [CI push](https://github.com/Tegar234-koplox/ops-mind-ai/actions/runs/41871706164), [CI PR](https://github.com/Tegar234-koplox/ops-mind-ai/actions/runs/41871925839), dan [CI main bilingual](https://github.com/Tegar234-koplox/ops-mind-ai/actions/runs/41872556947) dikonfirmasi langsung menampilkan Status Success. Hasil ini tidak mencakup commit dokumentasi yang dibuat setelah pemeriksaan.
+- [Catatan rilis pemilik di PR #6](https://github.com/Tegar234-koplox/ops-mind-ai/pull/6) melaporkan verifikasi pada 5 November WIB: Render Free live pada SHA bilingual; tiga investigasi beserta bukti/review dan dua snapshot/hash lama tetap utuh; pemeriksaan arsip tidak menambah biaya. Metadata bahasa historis `id` ditambahkan pada envelope, bukan menulis ulang payload arsip.
+- Catatan yang sama melaporkan satu investigasi Meta nyata Inggris PROD-001 berhasil dengan empat domain, tujuh bukti dan biaya US$0.021277, beserta browser daring untuk bahasa/arsip/cetak/ponsel dan nol pageerror. Ini laporan historis yang dapat ditelusuri ke PR; sesi cloud 10 November belum mereproduksi verifikasi daring atau menambah panggilan Meta.
+- Pada checkout tersebut, validasi cloud lokal lulus: Go vet/build/format, 41 tes Go dengan race detector dan PostgreSQL 18.4, format/build frontend, HTTP smoke dan enam tes browser mock. Satu tes Meta nyata sengaja dilewati. Suite browser dijalankan pada database baru terpisah agar tidak memakai investigasi dari run sebelumnya. Docker lokal tidak diuji.
+- Verifikasi demo langsung saat ini memerlukan akses jaringan dan kredensial login demo. Permintaan GitHub API serta demo ditolak kebijakan jaringan dengan 403 pada pemeriksaan awal. Git HTTPS dan halaman publik GitHub dapat diakses. Jangan mengganti kendala ini dengan klaim deployment baru atau saldo terkini.
+
+Lihat [handoff](HANDOFF.md) untuk pekerjaan lanjutan, batas identitas Git dan perbedaan bukti langsung/historis. Tidak diperlukan panggilan model tambahan hanya untuk menyelaraskan dokumen ini.
 
 ## Bukti penerimaan
 
